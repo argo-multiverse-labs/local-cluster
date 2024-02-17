@@ -24,11 +24,55 @@ applications:
       automated:
         prune: true
         selfHeal: true
+    info:
+    - name: url
+      value: https://argoproj.github.io/
+  - name: argocd-apps
+    namespace: argocd
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    sources:
+    - repoURL: 'https://argoproj.github.io/argo-helm'
+      chart: argocd-apps
+      targetRevision: "1.6.1"
+      helm:
+        valueFiles:
+        - $values/argocd-apps/values.override.yaml
+    - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      ref: values
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: argocd
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+    info:
+    - name: url
+      value: https://argoproj.github.io/
+  - name: kyverno
+    namespace: argocd
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    sources:
+    - repoURL: 'https://kyverno.github.io/kyverno'
+      chart: kyverno
+      targetRevision: "3.1.4"
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: kyverno
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
       syncOptions:
       - CreateNamespace=true
     info:
     - name: url
-      value: https://argoproj.github.io/
+      value: https://kyverno.github.io/
 
 # - name: guestbook
 #   namespace: argocd
