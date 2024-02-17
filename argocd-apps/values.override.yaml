@@ -4,6 +4,8 @@
 applications: 
   - name: argocd
     namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "0"
     finalizers:
     - resources-finalizer.argocd.argoproj.io
     project: default
@@ -29,6 +31,8 @@ applications:
       value: https://argoproj.github.io/
   - name: argocd-apps
     namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "2"
     finalizers:
     - resources-finalizer.argocd.argoproj.io
     project: default
@@ -54,11 +58,13 @@ applications:
       value: https://argoproj.github.io/
   - name: kyverno
     namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "3"
     finalizers:
     - resources-finalizer.argocd.argoproj.io
     project: default
-    sources:
-    - repoURL: 'https://kyverno.github.io/kyverno'
+    source:
+      repoURL: 'https://kyverno.github.io/kyverno'
       chart: kyverno
       targetRevision: "3.1.4"
     destination:
@@ -70,9 +76,32 @@ applications:
         selfHeal: true
       syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
     info:
     - name: url
       value: https://kyverno.github.io/
+  - name: kyverno-policy
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "4"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: HEAD
+      path: kyverno/policy
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: kyverno
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+    info:
+    - name: url
+      value: https://kyverno.github.io/
+
 
 # - name: guestbook
 #   namespace: argocd
