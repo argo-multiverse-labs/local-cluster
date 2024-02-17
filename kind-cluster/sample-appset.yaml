@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: sample-spring-boot
+  namespace: argocd
+spec:
+  generators:
+  - clusters: {} # (1)
+  template:
+    metadata:
+      name: '{{name}}-sample-spring-boot' # (2)
+    spec:
+      project: default
+      source: # (3)
+        repoURL: https://github.com/piomin/openshift-cluster-config.git
+        targetRevision: HEAD
+        path: apps/simple
+      destination:
+        server: '{{server}}' # (4)
+        namespace: demo # (5)
+      syncPolicy: # (6)
+        automated:
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
