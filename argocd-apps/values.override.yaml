@@ -101,6 +101,30 @@ applications:
     info:
     - name: url
       value: https://kyverno.github.io/
+  - name: prometheus
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "5"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://prometheus-community.github.io/helm-charts'
+      chart: kube-prometheus-stack
+      targetRevision: "56.6.2"
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: prometheus
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
+    info:
+    - name: url
+      value: https://prometheus-community.github.io/
 
 
 # - name: guestbook
