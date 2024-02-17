@@ -56,6 +56,10 @@ argo-pf: ## get admin and port forward ArgoCD
 	@echo "";
 	kubectl port-forward svc/argocd-server -n argocd 8080:80
 
+.PHONY: all-pf
+all-pf: ## port forward ArgoCD and Prometheus
+	kubectx kind-argo-homelab
+	kubectl port-forward svc/argocd-server -n argocd 8080:80 & kubectl port-forward svc/prometheus-kube-prometheus-prometheus -n prometheus 9090:9090 & kubectl port-forward svc/prometheus-grafana -n prometheus 8081:80
 
 
 .PHONY: argo-ap-bootstrap

@@ -800,7 +800,8 @@ controller:
       # -- Prometheus ServiceMonitor namespace
       namespace: "" # "monitoring"
       # -- Prometheus ServiceMonitor labels
-      additionalLabels: {}
+      additionalLabels:
+        release: prometheus
       # -- Prometheus ServiceMonitor annotations
       annotations: {}
     rules:
@@ -892,7 +893,8 @@ dex:
       # -- Prometheus ServiceMonitor namespace
       namespace: "" # "monitoring"
       # -- Prometheus ServiceMonitor labels
-      additionalLabels: {}
+      additionalLabels:
+        release: prometheus
       # -- Prometheus ServiceMonitor annotations
       annotations: {}
 
@@ -1422,7 +1424,8 @@ redis:
       # -- Prometheus ServiceMonitor namespace
       namespace: "" # "monitoring"
       # -- Prometheus ServiceMonitor labels
-      additionalLabels: {}
+      additionalLabels:
+        release: prometheus
       # -- Prometheus ServiceMonitor annotations
       annotations: {}
 
@@ -1952,7 +1955,8 @@ server:
       # -- Prometheus ServiceMonitor namespace
       namespace: ""  # monitoring
       # -- Prometheus ServiceMonitor labels
-      additionalLabels: {}
+      additionalLabels:
+        release: prometheus
       # -- Prometheus ServiceMonitor annotations
       annotations: {}
 
@@ -2498,7 +2502,8 @@ repoServer:
       # -- Prometheus ServiceMonitor namespace
       namespace: "" # "monitoring"
       # -- Prometheus ServiceMonitor labels
-      additionalLabels: {}
+      additionalLabels:
+        release: prometheus
       # -- Prometheus ServiceMonitor annotations
       annotations: {}
 
@@ -2648,7 +2653,8 @@ applicationSet:
       # -- Prometheus ServiceMonitor namespace
       namespace: ""  # monitoring
       # -- Prometheus ServiceMonitor labels
-      additionalLabels: {}
+      additionalLabels:
+        release: prometheus
       # -- Prometheus ServiceMonitor annotations
       annotations: {}
 
@@ -3025,7 +3031,8 @@ notifications:
       selector: {}
         # prometheus: kube-prometheus
       # -- Prometheus ServiceMonitor labels
-      additionalLabels: {}
+      additionalLabels:
+        release: prometheus
       # -- Prometheus ServiceMonitor annotations
       annotations: {}
       # namespace: monitoring
