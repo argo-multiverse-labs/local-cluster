@@ -227,9 +227,9 @@ configs:
 
     ## Controller Properties
     # -- Number of application status processors
-    controller.status.processors: 20
+    controller.status.processors: 50
     # -- Number of application operation processors
-    controller.operation.processors: 10
+    controller.operation.processors: 25
     # -- Specifies timeout between application self heal attempts
     controller.self.heal.timeout.seconds: 5
     # -- Repo server RPC call timeout seconds.
@@ -577,7 +577,21 @@ controller:
 
   # -- The number of application controller pods to run.
   # Additional replicas will cause sharding of managed clusters across number of replicas.
+  ## With dynamic cluster distribution turned on, sharding of the clusters will gracefully
+  ## rebalance if the number of replica's changes or one becomes unhealthy. (alpha)
   replicas: 1
+
+  # -- Enable dynamic cluster distribution (alpha)
+  # Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/dynamic-cluster-distribution
+  ## This is done using a deployment instead of a statefulSet
+  ## When replicas are added or removed, the sharding algorithm is re-run to ensure that the
+  ## clusters are distributed according to the algorithm. If the algorithm is well-balanced,
+  ## like round-robin, then the shards will be well-balanced.
+  dynamicClusterDistribution: false
+
+  # -- Application controller heartbeat time
+  # Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/dynamic-cluster-distribution/#working-of-dynamic-distribution
+  heartbeatTime: 10
 
   # -- Maximum number of controller revisions that will be maintained in StatefulSet history
   revisionHistoryLimit: 5
@@ -618,7 +632,12 @@ controller:
   extraArgs: []
 
   # -- Environment variables to pass to application controller
-  env: []
+  ## see https://github.com/argoproj/argo-cd/issues/17257
+  env: 
+    - name: WORKQUEUE_BUCKET_SIZE
+      value: "9223372036854775807"
+    - name: WORKQUEUE_BUCKET_QPS
+      value: "9223372036854775807"
 
   # -- envFrom to pass to application controller
   # @default -- `[]` (See [values.yaml])
@@ -661,6 +680,9 @@ controller:
 
   # -- Annotations for the application controller StatefulSet
   statefulsetAnnotations: {}
+
+  # -- Annotations for the application controller Deployment
+  deploymentAnnotations: {}
 
   # -- Annotations to be added to application controller pods
   podAnnotations: {}
@@ -1041,6 +1063,12 @@ dex:
   livenessProbe:
     # -- Enable Kubernetes liveness probe for Dex >= 2.28.0
     enabled: false
+    # -- Http path to use for the liveness probe
+    httpPath: /healthz/live
+    # -- Http port to use for the liveness probe
+    httpPort: metrics
+    # -- Scheme to use for for the liveness probe (can be HTTP or HTTPS)
+    httpScheme: HTTP
     # -- Minimum consecutive failures for the [probe] to be considered failed after having succeeded
     failureThreshold: 3
     # -- Number of seconds after the container has started before [probe] is initiated
@@ -1055,6 +1083,12 @@ dex:
   readinessProbe:
     # -- Enable Kubernetes readiness probe for Dex >= 2.28.0
     enabled: false
+    # -- Http path to use for the readiness probe
+    httpPath: /healthz/ready
+    # -- Http port to use for the readiness probe
+    httpPort: metrics
+    # -- Scheme to use for for the liveness probe (can be HTTP or HTTPS)
+    httpScheme: HTTP
     # -- Minimum consecutive failures for the [probe] to be considered failed after having succeeded
     failureThreshold: 3
     # -- Number of seconds after the container has started before [probe] is initiated
@@ -1157,7 +1191,7 @@ redis:
     # -- Redis repository
     repository: public.ecr.aws/docker/library/redis
     # -- Redis tag
-    tag: 7.0.15-alpine
+    tag: 7.2.4-alpine
     # -- Redis image pull policy
     # @default -- `""` (defaults to global.image.imagePullPolicy)
     imagePullPolicy: ""
@@ -1173,7 +1207,7 @@ redis:
       # -- Repository to use for the redis-exporter
       repository: public.ecr.aws/bitnami/redis-exporter
       # -- Tag to use for the redis-exporter
-      tag: 1.57.0
+      tag: 1.58.0
       # -- Image pull policy for the redis-exporter
       # @default -- `""` (defaults to global.image.imagePullPolicy)
       imagePullPolicy: ""
@@ -1439,7 +1473,7 @@ redis-ha:
     # -- Redis repository
     repository: public.ecr.aws/docker/library/redis
     # -- Redis tag
-    tag: 7.0.15-alpine
+    tag: 7.2.4-alpine
   ## Prometheus redis-exporter sidecar
   exporter:
     # -- Enable Prometheus redis-exporter sidecar
@@ -1447,7 +1481,7 @@ redis-ha:
     # -- Repository to use for the redis-exporter
     image: public.ecr.aws/bitnami/redis-exporter
     # -- Tag to use for the redis-exporter
-    tag: 1.57.0
+    tag: 1.58.0
   persistentVolume:
     # -- Configures persistence on Redis nodes
     enabled: false
@@ -2013,6 +2047,7 @@ server:
 
     # -- Additional ingress paths
     # @default -- `[]` (See [values.yaml])
+    ## Note: Supports use of custom Helm templates
     extraPaths: []
       # - path: /*
       #   pathType: Prefix
@@ -2024,15 +2059,17 @@ server:
 
     # -- Additional ingress rules
     # @default -- `[]` (See [values.yaml])
+    ## Note: Supports use of custom Helm templates
     extraRules: []
-      # - host: example.example.com
-      #   http:
-      #       path: /
+      # - http:
+      #     paths:
+      #     - path: /
+      #       pathType: Prefix
       #       backend:
       #         service:
-      #           name: example-svc
+      #           name: '{{ include "argo-cd.server.fullname" . }}'
       #           port:
-      #             name: http
+      #             name: '{{ .Values.server.service.servicePortHttpsName }}'
 
     # -- Additional TLS configuration
     # @default -- `[]` (See [values.yaml])
@@ -2046,8 +2083,9 @@ server:
     ## Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#aws-application-load-balancers-albs-and-classic-elb-http-mode
     aws:
       # -- Backend protocol version for the AWS ALB gRPC service
-      ## This tells AWS to send traffic from the ALB using HTTP2. Can use gRPC as well if you want to leverage gRPC specific features
-      backendProtocolVersion: HTTP2
+      ## This tells AWS to send traffic from the ALB using gRPC.
+      ## For more information: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html#health-check-settings
+      backendProtocolVersion: GRPC
       # -- Service type for the AWS ALB gRPC service
       ## Can be of type NodePort or ClusterIP depending on which mode you are running.
       ## Instance mode needs type NodePort, IP mode needs type ClusterIP
@@ -2118,6 +2156,7 @@ server:
 
     # -- Additional ingress paths for dedicated [gRPC-ingress]
     # @default -- `[]` (See [values.yaml])
+    ## Note: Supports use of custom Helm templates
     extraPaths: []
       # - path: /*
       #   pathType: Prefix
@@ -2129,15 +2168,17 @@ server:
 
     # -- Additional ingress rules
     # @default -- `[]` (See [values.yaml])
+    ## Note: Supports use of custom Helm templates
     extraRules: []
-      # - host: example.example.com
-      #   http:
-      #       path: /
+      # - http:
+      #     paths:
+      #     - path: /
+      #       pathType: Prefix
       #       backend:
       #         service:
-      #           name: example-svc
+      #           name: '{{ include "argo-cd.server.fullname" . }}'
       #           port:
-      #             name: http
+      #             name: '{{ .Values.server.service.servicePortHttpName }}'
 
     # -- Additional TLS configuration for dedicated [gRPC-ingress]
     # @default -- `[]` (See [values.yaml])
@@ -2880,15 +2921,17 @@ applicationSet:
 
     # -- Additional ingress rules
     # @default -- `[]` (See [values.yaml])
+    ## Note: Supports use of custom Helm templates
     extraRules: []
-      # - host: example.example.com
-      #   http:
-      #       path: /
-      #       backend:
-      #         service:
-      #           name: example-svc
-      #           port:
-      #             name: http
+      # - http:
+      #    paths:
+      #    - path: /api/webhook
+      #      pathType: Prefix
+      #      backend:
+      #        service:
+      #          name: '{{ include "argo-cd.applicationSet.fullname" . }}'
+      #          port:
+      #            name: '{{ .Values.applicationSet.service.portName }}'
 
     # -- Additional ingress TLS configuration
     # @default -- `[]` (See [values.yaml])
@@ -2896,7 +2939,8 @@ applicationSet:
       # - secretName: argocd-applicationset-tls
       #   hosts:
       #     - argocd-applicationset.example.com
-
+  # -- Enable ApplicationSet in any namespace feature
+  allowAnyNamespace: false
 ## Notifications controller
 notifications:
   # -- Enable notifications controller
