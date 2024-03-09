@@ -15,7 +15,7 @@ applications:
         recurse: false
     destination:
       server: https://kubernetes.default.svc
-      namespace: apps
+      namespace: argocd
     syncPolicy:
       automated:
         prune: true
