@@ -59,25 +59,19 @@ argo-pf: ## get admin and port forward ArgoCD
 .PHONY: all-pf
 all-pf: ## port forward ArgoCD and Prometheus
 	kubectx kind-argo-homelab
+	kubectl get secret argocd-initial-admin-secret --template={{.data.password}} -n argocd | base64 -D
+	@echo "";
+	kubectl get secret prometheus-grafana -ogo-template='{{ index .data "admin-password" | base64decode }}' -n prometheus
+	@echo "";
 	kubectl port-forward svc/argocd-server -n argocd 8080:80 & kubectl port-forward svc/prometheus-kube-prometheus-prometheus -n prometheus 9090:9090 & kubectl port-forward svc/prometheus-grafana -n prometheus 8081:80
 
-
-.PHONY: argo-ap-bootstrap
-argo-ap-bootstrap: vendor ## bootstrap ArgoCD to KinD cluster
-	kubectx kind-kind-argocd
-	argocd-autopilot repo bootstrap
-
-.PHONY: argo-ap-project
-argo-ap-project: vendor ## bootstrap ArgoCD to KinD cluster
-	kubectx kind-kind-argocd
-	argocd-autopilot project create monitoring
-
-.PHONY: argo-ap-app
-argo-ap-app: vendor ## bootstrap ArgoCD to KinD cluster
-	kubectx kind-kind-argocd
-	argocd-autopilot project create testing
-	argocd-autopilot app create hello-world --app github.com/argoproj-labs/argocd-autopilot/examples/demo-app/ -p testing --wait-timeout 2m
-
+.PHONY: build-all
+build-all: vendor kind-cluster vcluster-init ## create kind cluster, bootstrap argocd, bootstrap argocd-apps, install kyverno, port forward argocd
+	argo-init 
+	sleep 30s
+	argo-bootstrap 
+	sleep 30s
+	all-pf
 
 
 ### check software available
@@ -85,7 +79,6 @@ HAS_KUBECTL      := $(shell command -v kubectl;)
 HAS_KUBECTX      := $(shell command -v kubectx;)
 HAS_HELM          := $(shell command -v helm;)
 HAS_KIND          := $(shell command -v kind;)
-HAS_ARGO_PILOT          := $(shell command -v argocd-autopilot;)
 HAS_VCLUSTER          := $(shell command -v vcluster;)
 
 .PHONY: vendor
@@ -101,9 +94,6 @@ ifndef HAS_KUBECTX
 endif
 ifndef HAS_KIND
 	$(error must install kind)
-endif
-ifndef HAS_ARGO_PILOT
-	$(error must install argocd-autopilot)
 endif
 ifndef HAS_VCLUSTER
 	$(error must install argocd-autopilot)

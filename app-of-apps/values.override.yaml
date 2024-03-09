@@ -1,160 +1,26 @@
 # -- Deploy Argo CD Applications within this helm release
 # @default -- `[]` (See [values.yaml])
 ## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/
-applications: 
-  - name: argocd
-    namespace: argocd
-    additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "0"
-    finalizers:
-    - resources-finalizer.argocd.argoproj.io
-    project: default
-    sources:
-    - repoURL: 'https://argoproj.github.io/argo-helm'
-      chart: argo-cd
-      targetRevision: "6.2.1"
-      helm:
-        valueFiles:
-        - $values/argocd/values.override.yaml
-    - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: main
-      ref: values
-    destination:
-      server: https://kubernetes.default.svc
-      namespace: argocd
-    syncPolicy:
-      automated:
-        prune: true
-        selfHeal: true
-    info:
-    - name: url
-      value: https://argoproj.github.io/
-  - name: argocd-apps
-    namespace: argocd
-    additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "2"
-    finalizers:
-    - resources-finalizer.argocd.argoproj.io
-    project: default
-    sources:
-    - repoURL: 'https://argoproj.github.io/argo-helm'
-      chart: argocd-apps
-      targetRevision: "1.6.1"
-      helm:
-        valueFiles:
-        - $values/argocd-apps/values.override.yaml
-    - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: main
-      ref: values
-    destination:
-      server: https://kubernetes.default.svc
-      namespace: argocd
-    syncPolicy:
-      automated:
-        prune: true
-        selfHeal: true
-    info:
-    - name: url
-      value: https://argoproj.github.io/
-  - name: kyverno
-    namespace: argocd
-    additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "3"
-    finalizers:
-    - resources-finalizer.argocd.argoproj.io
-    project: default
-    source:
-      repoURL: 'https://kyverno.github.io/kyverno'
-      chart: kyverno
-      targetRevision: "3.1.4"
-    destination:
-      server: https://kubernetes.default.svc
-      namespace: kyverno
-    syncPolicy:
-      automated:
-        prune: true
-        selfHeal: true
-      syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
-    info:
-    - name: url
-      value: https://kyverno.github.io/
-  - name: kyverno-policy
-    namespace: argocd
-    additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "4"
-    finalizers:
-    - resources-finalizer.argocd.argoproj.io
-    project: default
-    source:
-      repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: HEAD
-      path: kyverno/policy
-    destination:
-      server: https://kubernetes.default.svc
-      namespace: kyverno
-    syncPolicy:
-      automated:
-        prune: true
-        selfHeal: true
-    info:
-    - name: url
-      value: https://kyverno.github.io/
-  - name: prometheus
-    namespace: argocd
-    additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "5"
-    finalizers:
-    - resources-finalizer.argocd.argoproj.io
-    project: default
-    source:
-      repoURL: 'https://prometheus-community.github.io/helm-charts'
-      chart: kube-prometheus-stack
-      targetRevision: "56.6.2"
-    destination:
-      server: https://kubernetes.default.svc
-      namespace: prometheus
-    syncPolicy:
-      automated:
-        prune: true
-        selfHeal: true
-      syncOptions:
-        - CreateNamespace=true
-        - ServerSideApply=true
-    info:
-    - name: url
-      value: https://prometheus-community.github.io/
-  - name: app-of-apps
-    namespace: argocd
-    additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "6"
-    finalizers:
-    - resources-finalizer.argocd.argoproj.io
-    project: default
-    sources:
-    - repoURL: 'https://argoproj.github.io/argo-helm'
-      chart: argocd-apps
-      targetRevision: "1.6.1"
-      helm:
-        valueFiles:
-        - $values/app-of-apps/values.override.yaml
-    - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: main
-      ref: values
-    destination:
-      server: https://kubernetes.default.svc
-      namespace: apps
-    syncPolicy:
-      automated:
-        prune: true
-        selfHeal: true
-      syncOptions:
-        - CreateNamespace=true
-    info:
-    - name: url
-      value: https://argoproj.github.io/
-
+applications: []
+  # - name: basic-app-repo
+  #   namespace: argocd
+  #   finalizers:
+  #   - resources-finalizer.argocd.argoproj.io
+  #   project: default
+  #   sources:
+  #   - repoURL: 'https://github.com/argo-multiverse-labs/basic-app.git'
+  #     targetRevision: "main"
+  #   destination:
+  #     server: https://kubernetes.default.svc
+  #     namespace: argocd
+  #   syncPolicy:
+  #     automated:
+  #       prune: true
+  #       selfHeal: true
+  #   info:
+  #   - name: url
+  #     value: https://argoproj.github.io/
+ 
 
 # - name: guestbook
 #   namespace: argocd
@@ -246,32 +112,32 @@ projects: []
 # -- Deploy Argo CD ApplicationSets within this helm release
 # @default -- `[]` (See [values.yaml])
 ## Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/
-applicationsets:
+applicationsets: []
 ## this demo appset provides an app per vCluster - comment out when no longer needed for verification
-  - name: sample-spring-boot
-    namespace: argocd
-    additionalLabels: {}
-    additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "6"
-    generators:
-      - clusters: {}
-    template:
-      metadata:
-        name: '{{name}}-sample-spring-boot'
-      spec:
-        project: default
-        source:
-          repoURL: https://github.com/piomin/openshift-cluster-config.git
-          targetRevision: HEAD
-          path: apps/simple
-        destination:
-          server: '{{server}}'
-          namespace: demo
-        syncPolicy:
-          automated:
-            selfHeal: true
-          syncOptions:
-            - CreateNamespace=true
+  # - name: sample-spring-boot
+  #   namespace: argocd
+  #   additionalLabels: {}
+  #   additionalAnnotations:
+  #     argocd.argoproj.io/sync-wave: "6"
+  #   generators:
+  #     - clusters: {}
+  #   template:
+  #     metadata:
+  #       name: '{{name}}-sample-spring-boot'
+  #     spec:
+  #       project: default
+  #       source:
+  #         repoURL: https://github.com/piomin/openshift-cluster-config.git
+  #         targetRevision: HEAD
+  #         path: apps/simple
+  #       destination:
+  #         server: '{{server}}'
+  #         namespace: demo
+  #       syncPolicy:
+  #         automated:
+  #           selfHeal: true
+  #         syncOptions:
+  #           - CreateNamespace=true
 
 # - name: guestbook
 #   namespace: argocd
