@@ -10,6 +10,7 @@ applications:
     sources:
     - repoURL: 'https://github.com/argo-multiverse-labs/basic-app.git'
       targetRevision: "main"
+      path: appset
       directory:
         recurse: false
     destination:
