@@ -246,32 +246,32 @@ projects: []
 # -- Deploy Argo CD ApplicationSets within this helm release
 # @default -- `[]` (See [values.yaml])
 ## Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/
-applicationsets:
+applicationsets: []
 ## this demo appset provides an app per vCluster - comment out when no longer needed for verification
-  - name: sample-spring-boot
-    namespace: argocd
-    additionalLabels: {}
-    additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "6"
-    generators:
-      - clusters: {}
-    template:
-      metadata:
-        name: '{{name}}-sample-spring-boot'
-      spec:
-        project: default
-        source:
-          repoURL: https://github.com/piomin/openshift-cluster-config.git
-          targetRevision: HEAD
-          path: apps/simple
-        destination:
-          server: '{{server}}'
-          namespace: demo
-        syncPolicy:
-          automated:
-            selfHeal: true
-          syncOptions:
-            - CreateNamespace=true
+  # - name: sample-spring-boot
+  #   namespace: argocd
+  #   additionalLabels: {}
+  #   additionalAnnotations:
+  #     argocd.argoproj.io/sync-wave: "6"
+  #   generators:
+  #     - clusters: {}
+  #   template:
+  #     metadata:
+  #       name: '{{name}}-sample-spring-boot'
+  #     spec:
+  #       project: default
+  #       source:
+  #         repoURL: https://github.com/piomin/openshift-cluster-config.git
+  #         targetRevision: HEAD
+  #         path: apps/simple
+  #       destination:
+  #         server: '{{server}}'
+  #         namespace: demo
+  #       syncPolicy:
+  #         automated:
+  #           selfHeal: true
+  #         syncOptions:
+  #           - CreateNamespace=true
 
 # - name: guestbook
 #   namespace: argocd

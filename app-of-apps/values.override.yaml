@@ -1,25 +1,27 @@
 # -- Deploy Argo CD Applications within this helm release
 # @default -- `[]` (See [values.yaml])
 ## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/
-applications: []
-  # - name: basic-app-repo
-  #   namespace: argocd
-  #   finalizers:
-  #   - resources-finalizer.argocd.argoproj.io
-  #   project: default
-  #   sources:
-  #   - repoURL: 'https://github.com/argo-multiverse-labs/basic-app.git'
-  #     targetRevision: "main"
-  #   destination:
-  #     server: https://kubernetes.default.svc
-  #     namespace: argocd
-  #   syncPolicy:
-  #     automated:
-  #       prune: true
-  #       selfHeal: true
-  #   info:
-  #   - name: url
-  #     value: https://argoproj.github.io/
+applications:
+  - name: basic-app-set
+    namespace: argocd
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    sources:
+    - repoURL: 'https://github.com/argo-multiverse-labs/basic-app.git'
+      targetRevision: "main"
+      directory:
+        recurse: false
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: apps
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+    info:
+    - name: url
+      value: https://argoproj.github.io/
  
 
 # - name: guestbook
