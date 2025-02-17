@@ -1,3 +1,5 @@
 ## Append samples of your project ##
 resources:
+- spin-shim-executor.yaml
+- spintainer-executor.yaml
 - simple.yaml
