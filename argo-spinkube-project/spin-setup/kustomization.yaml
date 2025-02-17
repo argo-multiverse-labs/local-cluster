@@ -1,0 +1,4 @@
+resources:
+  - runtimeclass.yaml
+  - https://raw.githubusercontent.com/spinkube/spin-operator/main/config/crd/bases/core.spinkube.dev_spinapps.yaml
+  - https://raw.githubusercontent.com/spinkube/spin-operator/main/config/crd/bases/core.spinkube.dev_spinappexecutors.yaml
