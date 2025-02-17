@@ -115,6 +115,8 @@ applications:
         parameters:
           - name: "crds.enabled"
             value: true
+          - name: "installCRDs"
+            value: true
           - name: "nodeSelector.workload"
             value: system
           - name: "cainjector.nodeSelector.workload"
