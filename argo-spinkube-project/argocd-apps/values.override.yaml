@@ -135,10 +135,10 @@ applications:
     sources:
     - repoURL: 'https://argoproj.github.io/argo-helm'
       chart: argocd-apps
-      targetRevision: "1.6.1"
+      targetRevision: "2.0.2"
       helm:
         valueFiles:
-        - $values/argo-spinkube-project/app-of-apps/values.override.yaml
+        - $values/argo-spinkube-project/argocd-apps/values.override.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
       targetRevision: main
       ref: values
