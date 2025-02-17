@@ -32,7 +32,7 @@ applications:
   prometheus:
     namespace: argocd
     additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "5"
+      argocd.argoproj.io/sync-wave: "2"
     finalizers:
     - resources-finalizer.argocd.argoproj.io
     project: default
@@ -56,7 +56,7 @@ applications:
   app-of-apps:
     namespace: argocd
     additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "6"
+      argocd.argoproj.io/sync-wave: "1"
     finalizers:
     - resources-finalizer.argocd.argoproj.io
     project: default
@@ -82,4 +82,80 @@ applications:
     info:
     - name: url
       value: https://argoproj.github.io/
+  spin-setup:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "3"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      path: argo-spinkube-project/spin-setup
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+  cert-manager:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "4"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      chart: cert-manager
+      repoURL: https://charts.jetstack.io
+      targetRevision: v1.14.3
+      helm:
+        parameters:
+          - name: "crds.enabled"
+            value: "true"
+          - name: "nodeSelector.workload"
+            value: system
+          - name: "cainjector.nodeSelector.workload"
+            value: system
+          - name: "startupapicheck.nodeSelector.workload"
+            value: system
+          - name: "webhook.nodeSelector.workload"
+            value: system
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: cert-manager
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+  kwasm-operator:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "5"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      chart: kwasm-operator
+      repoURL: http://kwasm.sh/kwasm-operator/
+      targetRevision: v1.14.3
+      helm:
+        parameters:
+          - name: "nodeSelector.workload"
+            value: system
+          - name: "kwasmOperator.installerImage"
+            value: "ghcr.io/spinkube/containerd-shim-spin/node-installer:v0.17.0"
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: kwasm
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
 

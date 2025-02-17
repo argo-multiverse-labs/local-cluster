@@ -23,7 +23,28 @@ nodes:
   #   # st2, postgres, etc..
   # - containerPort: 30443
   #   hostPort: 30443
-# the three workers
+# the six workers, 3 'system', 3 'spin'
 - role: worker
+  labels:
+    workload: system
+    node.kubernetes.io/instance-type: kind
 - role: worker
+  labels:
+    workload: system
+    node.kubernetes.io/instance-type: kind
 - role: worker
+  labels:
+    workload: system
+    node.kubernetes.io/instance-type: kind
+- role: worker
+  labels:
+    runtime: containerd-shim-spin
+    node.kubernetes.io/instance-type: kind
+- role: worker
+  labels:
+    runtime: containerd-shim-spin
+    node.kubernetes.io/instance-type: kind
+- role: worker
+  labels:
+    runtime: containerd-shim-spin
+    node.kubernetes.io/instance-type: kind

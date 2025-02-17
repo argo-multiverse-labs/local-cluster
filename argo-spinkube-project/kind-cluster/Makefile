@@ -42,12 +42,6 @@ argo-bootstrap: vendor ## bootstrap ArgoCD-Apps/app-of-apps to KinD cluster
 	helm repo add argo https://argoproj.github.io/argo-helm || true
 	helm upgrade -i argocd-apps argo/argocd-apps -n argocd --create-namespace -f ../argocd-apps/values.override.yaml	
 
-.PHONY: kyverno-init
-kyverno-init: ## install kyverno and apply argo policy
-	kubectx kind-argo-homelab-spin
-	helm repo add kyverno https://kyverno.github.io/kyverno/ || true
-	helm install kyverno kyverno/kyverno -n kyverno --create-namespace
-	kubectl apply -f kyverno/policy.yaml
 
 .PHONY: argo-pf
 argo-pf: ## get admin and port forward ArgoCD
