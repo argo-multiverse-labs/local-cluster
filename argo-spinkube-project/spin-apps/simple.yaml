@@ -3,6 +3,6 @@ kind: SpinApp
 metadata:
   name: simple-spinapp
 spec:
-  image: "ghcr.io/spinkube/containerd-shim-spin/examples/spin-rust-hello:v0.13.0"
+  image: "ghcr.io/spinkube/containerd-shim-spin/examples/spin-rust-hello:v0.13.19"
   replicas: 2
   executor: containerd-shim-spin
