@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: Node
+metadata:
+  name: argo-homelab-spin-worker4
+  annotations:
+    "kwasm.sh/kwasm-node": "true" 
+    "shim_version": "v0.17.0"
+
+---
+apiVersion: v1
+kind: Node
+metadata:
+  name: argo-homelab-spin-worker5
+  annotations:
+    "kwasm.sh/kwasm-node": "true" 
+    "shim_version": "v0.17.0"
+
+---
+apiVersion: v1
+kind: Node
+metadata:
+  name: argo-homelab-spin-worker6
+  annotations:
+    "kwasm.sh/kwasm-node": "true" 
+    "shim_version": "v0.17.0"
