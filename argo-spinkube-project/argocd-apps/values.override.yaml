@@ -114,9 +114,9 @@ applications:
       helm:
         parameters:
           - name: "crds.enabled"
-            value: true
+            value: "true"
           - name: "installCRDs"
-            value: true
+            value: "true"
           - name: "nodeSelector.workload"
             value: system
           - name: "cainjector.nodeSelector.workload"
