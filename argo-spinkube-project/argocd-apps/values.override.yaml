@@ -144,6 +144,7 @@ applications:
     source:
       chart: kwasm-operator
       repoURL: http://kwasm.sh/kwasm-operator/
+      targetRevision: 0.2.3
       helm:
         parameters:
           - name: "nodeSelector.workload"
