@@ -12,10 +12,10 @@ applications:
     sources:
     - repoURL: 'https://argoproj.github.io/argo-helm'
       chart: argo-cd
-      targetRevision: "6.6.0"
+      targetRevision: "7.8.2"
       helm:
         valueFiles:
-        - $values/argocd/values.override.yaml
+        - $values/argo-spinkube-project/argocd/values.override.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
       targetRevision: main
       ref: values
@@ -42,7 +42,7 @@ applications:
       targetRevision: "1.6.1"
       helm:
         valueFiles:
-        - $values/argocd-apps/values.override.yaml
+        - $values/argo-spinkube-project/argocd-apps/values.override.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
       targetRevision: main
       ref: values
@@ -90,7 +90,7 @@ applications:
     source:
       repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
       targetRevision: HEAD
-      path: kyverno/policy
+      path: argo-spinkube-project/kyverno/policy
     destination:
       server: https://kubernetes.default.svc
       namespace: kyverno
@@ -111,7 +111,7 @@ applications:
     source:
       repoURL: 'https://prometheus-community.github.io/helm-charts'
       chart: kube-prometheus-stack
-      targetRevision: "56.6.2"
+      targetRevision: "69.3.1"
     destination:
       server: https://kubernetes.default.svc
       namespace: prometheus
@@ -138,7 +138,7 @@ applications:
       targetRevision: "1.6.1"
       helm:
         valueFiles:
-        - $values/app-of-apps/values.override.yaml
+        - $values/argo-spinkube-project/app-of-apps/values.override.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
       targetRevision: main
       ref: values
