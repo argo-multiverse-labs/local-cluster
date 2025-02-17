@@ -82,28 +82,10 @@ applications:
     info:
     - name: url
       value: https://argoproj.github.io/
-  spin-setup:
-    namespace: argocd
-    additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "3"
-    finalizers:
-    - resources-finalizer.argocd.argoproj.io
-    project: default
-    source:
-      repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: main
-      path: argo-spinkube-project/spin-setup
-    destination:
-      server: https://kubernetes.default.svc
-      namespace: default
-    syncPolicy:
-      automated:
-        prune: true
-        selfHeal: true
   cert-manager:
     namespace: argocd
     additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "4"
+      argocd.argoproj.io/sync-wave: "3"
     finalizers:
     - resources-finalizer.argocd.argoproj.io
     project: default
@@ -137,7 +119,7 @@ applications:
   kwasm-operator:
     namespace: argocd
     additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "5"
+      argocd.argoproj.io/sync-wave: "4"
     finalizers:
     - resources-finalizer.argocd.argoproj.io
     project: default
@@ -163,7 +145,7 @@ applications:
   kwasm-setup:
     namespace: argocd
     additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "6"
+      argocd.argoproj.io/sync-wave: "5"
     finalizers:
     - resources-finalizer.argocd.argoproj.io
     project: default
@@ -178,4 +160,42 @@ applications:
       automated:
         prune: true
         selfHeal: true
+  spin-setup:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      path: argo-spinkube-project/spin-setup
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+  spinkube-operator:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      chart: spin-operator
+      repoURL: ghcr.io/spinkube/charts
+      targetRevision: 0.4.0
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: spin-operator
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
 
