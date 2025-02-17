@@ -4,5 +4,5 @@ metadata:
   name: simple-spinapp
 spec:
   image: "ghcr.io/spinkube/containerd-shim-spin/examples/spin-rust-hello:v0.13.0"
-  replicas: 1
+  replicas: 100
   executor: containerd-shim-spin

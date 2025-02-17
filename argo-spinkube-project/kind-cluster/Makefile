@@ -57,7 +57,7 @@ all-pf: ## port forward ArgoCD and Prometheus
 	@echo "";
 	kubectl get secret prometheus-grafana -ogo-template='{{ index .data "admin-password" | base64decode }}' -n prometheus
 	@echo "";
-	kubectl port-forward svc/argocd-server -n argocd 8080:80 & kubectl port-forward svc/prometheus-kube-prometheus-prometheus -n prometheus 9090:9090 & kubectl port-forward svc/prometheus-grafana -n prometheus 8081:80
+	kubectl port-forward svc/argocd-server -n argocd 8080:80 & kubectl port-forward svc/prometheus-kube-prometheus-prometheus -n prometheus 9090:9090 & kubectl port-forward svc/prometheus-grafana -n prometheus 8081:80 & kubectl port-forward svc/simple-spinapp -n spin-apps 8083:80
 
 .PHONY: build-all
 build-all: vendor kind-cluster ## create kind cluster, bootstrap argocd, bootstrap argocd-apps, port forward argocd
