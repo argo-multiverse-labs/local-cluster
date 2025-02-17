@@ -178,7 +178,7 @@ applications:
       automated:
         prune: true
         selfHeal: true
-  spinkube-operator:
+  sko:
     namespace: argocd
     additionalAnnotations:
       argocd.argoproj.io/sync-wave: "6"
