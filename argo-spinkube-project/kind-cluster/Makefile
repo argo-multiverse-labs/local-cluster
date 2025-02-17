@@ -12,8 +12,8 @@ help: vendor ## This help.\
 .DEFAULT_GOAL := help
 
 .PHONY: kind-cluster
-kind-cluster: vendor ## build a kind cluster of 3 worker nodes, k8s 1.24
-	kind create cluster --name argo-homelab-spin --image=kindest/node:v1.29.0 --wait 1m --config kind/kind-config.yaml --retain
+kind-cluster: vendor ## build a kind cluster of 3 worker nodes, k8s 1.32
+	kind create cluster --name argo-homelab-spin --image=kindest/node:v1.32.2 --wait 1m --config kind/kind-config.yaml --retain
 
 # .PHONY: kind-destroy-helmfile
 # kind-destroy-helmfile: ## helmfile destroy a cluster
@@ -67,11 +67,11 @@ all-pf: ## port forward ArgoCD and Prometheus
 
 .PHONY: build-all
 build-all: vendor kind-cluster ## create kind cluster, bootstrap argocd, bootstrap argocd-apps, port forward argocd
-	argo-init 
+	$(MAKE) argo-init
 	sleep 30s
-	argo-bootstrap 
+	$(MAKE) argo-bootstrap
 	sleep 30s
-	all-pf
+	$(MAKE) all-pf
 
 
 ### check software available
