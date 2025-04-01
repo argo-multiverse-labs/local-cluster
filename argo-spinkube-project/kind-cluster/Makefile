@@ -51,13 +51,26 @@ argo-pf: ## get admin and port forward ArgoCD
 	kubectl port-forward svc/argocd-server -n argocd 8080:80
 
 .PHONY: all-pf
-all-pf: ## port forward ArgoCD and Prometheus
+all-pf: kill-port-forwards ## port forward ArgoCD and Prometheus
 	kubectx kind-argo-homelab-spin
 	kubectl get secret argocd-initial-admin-secret --template={{.data.password}} -n argocd | base64 -D
 	@echo "";
 	kubectl get secret prometheus-grafana -ogo-template='{{ index .data "admin-password" | base64decode }}' -n prometheus
 	@echo "";
 	kubectl port-forward svc/argocd-server -n argocd 8080:80 & kubectl port-forward svc/prometheus-kube-prometheus-prometheus -n prometheus 9090:9090 & kubectl port-forward svc/prometheus-grafana -n prometheus 8081:80 & kubectl port-forward svc/simple-spinapp -n spin-apps 8083:80
+
+.PHONY: kill-port-forwards
+
+kill-port-forwards: ## kill all port forwards
+	@echo "Finding and killing kubectl port-forward processes..."
+	@pids=$$(ps aux | grep "kubectl port-forward" | grep -v grep | awk '{print $$2}'); \
+	if [ -z "$$pids" ]; then \
+		echo "No kubectl port-forward processes found."; \
+	else \
+		echo "Killing processes: $$pids"; \
+		echo $$pids | xargs kill -9; \
+		echo "All kubectl port-forward processes have been terminated."; \
+	fi
 
 .PHONY: build-all
 build-all: vendor kind-cluster ## create kind cluster, bootstrap argocd, bootstrap argocd-apps, port forward argocd
