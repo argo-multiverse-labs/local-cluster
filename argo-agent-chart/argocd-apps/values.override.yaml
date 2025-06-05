@@ -1,0 +1,221 @@
+# -- Deploy Argo CD Applications within this helm release
+# @default -- `[]` (See [values.yaml])
+## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/
+applications: 
+  argocd:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "0"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    sources:
+    - repoURL: 'https://argoproj.github.io/argo-helm'
+      chart: argo-cd
+      targetRevision: "7.8.2"
+      helm:
+        valueFiles:
+        - $values/argo-spinkube-project/argocd/values.override.yaml
+    - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      ref: values
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: argocd
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+    info:
+    - name: url
+      value: https://argoproj.github.io/
+  prometheus:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "2"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://prometheus-community.github.io/helm-charts'
+      chart: kube-prometheus-stack
+      targetRevision: "69.3.1"
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: prometheus
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
+    info:
+    - name: url
+      value: https://prometheus-community.github.io/
+  app-of-apps:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "1"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    sources:
+    - repoURL: 'https://argoproj.github.io/argo-helm'
+      chart: argocd-apps
+      targetRevision: "2.0.2"
+      helm:
+        valueFiles:
+        - $values/argo-spinkube-project/argocd-apps/values.override.yaml
+    - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      ref: values
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: apps
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: url
+      value: https://argoproj.github.io/
+  cert-manager:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "3"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      chart: cert-manager
+      repoURL: https://charts.jetstack.io
+      targetRevision: v1.14.3
+      helm:
+        parameters:
+          - name: "crds.enabled"
+            value: "true"
+          - name: "installCRDs"
+            value: "true"
+          - name: "nodeSelector.workload"
+            value: system
+          - name: "cainjector.nodeSelector.workload"
+            value: system
+          - name: "startupapicheck.nodeSelector.workload"
+            value: system
+          - name: "webhook.nodeSelector.workload"
+            value: system
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: cert-manager
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+  kwasm-operator:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "4"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      chart: kwasm-operator
+      repoURL: http://kwasm.sh/kwasm-operator/
+      targetRevision: 0.2.3
+      helm:
+        parameters:
+          - name: "nodeSelector.workload"
+            value: system
+          - name: "kwasmOperator.installerImage"
+            value: "ghcr.io/spinkube/containerd-shim-spin/node-installer:v0.17.0"
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: kwasm
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+  kwasm-setup:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "5"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      path: argo-spinkube-project/kwasm-setup
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+  spin-setup:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      path: argo-spinkube-project/spin-setup
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+  sko:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "7"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      chart: spin-operator
+      repoURL: ghcr.io/spinkube/charts
+      targetRevision: 0.4.0
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: spin-operator
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+  spin-apps:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "8"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      path: argo-spinkube-project/spin-apps
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: spin-apps
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
