@@ -1,6 +1,14 @@
 SHELL ?= /bin/bash
 RED=\033[0;31m
 NC=\033[0m
+
+# Detect OS for base64 compatibility
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+    BASE64_DECODE = base64 -D
+else
+    BASE64_DECODE = base64 -d
+endif
 ################################################################################
 # Setup and Help                                                               #
 ################################################################################
@@ -35,14 +43,14 @@ argo-bootstrap: vendor ## bootstrap ArgoCD-Apps/app-of-apps to KinD cluster
 .PHONY: argo-pf
 argo-pf: ## get admin and port forward ArgoCD
 	kubectx kind-argo-agent-chart
-	kubectl get secret argocd-initial-admin-secret --template={{.data.password}} -n argocd | base64 -D
+	kubectl get secret argocd-initial-admin-secret --template={{.data.password}} -n argocd | $(BASE64_DECODE)
 	@echo "";
 	kubectl port-forward svc/argocd-server -n argocd 8080:80
 
 .PHONY: all-pf
 all-pf: kill-port-forwards ## port forward ArgoCD and Prometheus
 	kubectx kind-argo-agent-chart
-	kubectl get secret argocd-initial-admin-secret --template={{.data.password}} -n argocd | base64 -D
+	kubectl get secret argocd-initial-admin-secret --template={{.data.password}} -n argocd | $(BASE64_DECODE)
 	@echo "";
 	kubectl get secret prometheus-grafana -ogo-template='{{ index .data "admin-password" | base64decode }}' -n prometheus
 	@echo "";
@@ -64,9 +72,9 @@ kill-port-forwards: ## kill all port forwards
 .PHONY: build-all
 build-all: vendor kind-cluster ## create kind cluster, bootstrap argocd, bootstrap argocd-apps, port forward argocd
 	$(MAKE) argo-init
-	sleep 30s
+	sleep 30
 	$(MAKE) argo-bootstrap
-	sleep 30s
+	sleep 30
 	$(MAKE) all-pf
 
 
