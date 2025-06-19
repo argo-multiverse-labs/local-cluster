@@ -9,6 +9,12 @@ ifeq ($(UNAME_S),Darwin)
 else
     BASE64_DECODE = base64 -d
 endif
+
+# KIND cluster name for resource management
+KIND_CLUSTER_NAME = argo-agent-chart
+
+# Include reusable KIND resource management targets
+# include kind-resource-management.mk
 ################################################################################
 # Setup and Help                                                               #
 ################################################################################
@@ -21,35 +27,35 @@ help: vendor ## This help.\
 
 .PHONY: kind-cluster
 kind-cluster: vendor ## build a kind cluster of 3 worker nodes, k8s 1.32
-	kind create cluster --name argo-agent-chart --image=kindest/node:v1.33.1 --wait 1m --config kind/kind-config.yaml --retain
+	kind create cluster --name $(KIND_CLUSTER_NAME) --image=kindest/node:v1.33.1 --wait 1m --config kind/kind-config.yaml --retain
 
 .PHONY: rm-kind
 rm-kind: ## delete a kind cluster
-	kind delete cluster --name argo-agent-chart
+	kind delete cluster --name $(KIND_CLUSTER_NAME)
 
 .PHONY: argo-init
 argo-init: vendor ## init ArgoCD to KinD cluster
-	kubectx kind-argo-agent-chart
+	kubectx kind-$(KIND_CLUSTER_NAME)
 	helm repo add argo https://argoproj.github.io/argo-helm || true
 	helm install argocd argo/argo-cd -n argocd --create-namespace -f ../argocd/values.override.yaml
 
 .PHONY: argo-bootstrap
 argo-bootstrap: vendor ## bootstrap ArgoCD-Apps/app-of-apps to KinD cluster
-	kubectx kind-argo-agent-chart
+	kubectx kind-$(KIND_CLUSTER_NAME)
 	helm repo add argo https://argoproj.github.io/argo-helm || true
 	helm upgrade -i argocd-apps argo/argocd-apps -n argocd --create-namespace -f ../argocd-apps/values.override.yaml	
 
 
 .PHONY: argo-pf
 argo-pf: ## get admin and port forward ArgoCD
-	kubectx kind-argo-agent-chart
+	kubectx kind-$(KIND_CLUSTER_NAME)
 	kubectl get secret argocd-initial-admin-secret --template={{.data.password}} -n argocd | $(BASE64_DECODE)
 	@echo "";
 	kubectl port-forward svc/argocd-server -n argocd 8080:80
 
 .PHONY: all-pf
 all-pf: kill-port-forwards ## port forward ArgoCD and Prometheus
-	kubectx kind-argo-agent-chart
+	kubectx kind-$(KIND_CLUSTER_NAME)
 	kubectl get secret argocd-initial-admin-secret --template={{.data.password}} -n argocd | $(BASE64_DECODE)
 	@echo "";
 	kubectl get secret prometheus-grafana -ogo-template='{{ index .data "admin-password" | base64decode }}' -n prometheus
