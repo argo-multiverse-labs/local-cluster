@@ -89,7 +89,7 @@ applications:
     project: default
     source:
       repoURL: 'https://github.com/lukepatrick/cdviz'
-      targetRevision: feat/charts
+      targetRevision: main
       path: charts/cdviz-db
       helm:
         values: |
