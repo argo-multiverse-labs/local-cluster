@@ -88,9 +88,9 @@ applications:
     - resources-finalizer.argocd.argoproj.io
     project: default
     source:
-      repoURL: 'oci://ghcr.io/cdviz-dev/charts/cdviz-db'
-      targetRevision: 0.4.0-101-gfd91e6c
-      chart: cdviz-db
+      repoURL: 'https://github.com/lukepatrick/cdviz'
+      targetRevision: feat/charts
+      path: charts/cdviz-db
       helm:
         values: |
           db_url: "postgresql://cdviz:cdviz@cdviz-db-postgresql:5432/cdviz?sslmode=disable"
