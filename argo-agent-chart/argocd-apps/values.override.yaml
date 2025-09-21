@@ -1,0 +1,117 @@
+# -- Deploy Argo CD Applications within this helm release
+# @default -- `[]` (See [values.yaml])
+## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/
+applications: 
+  argocd:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "0"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    sources:
+    - repoURL: 'https://argoproj.github.io/argo-helm'
+      chart: argo-cd
+      targetRevision: "8.0.14"
+      helm:
+        valueFiles:
+        - $values/argo-spinkube-project/argocd/values.override.yaml
+    - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: agent-chart
+      ref: values
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: argocd
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+    info:
+    - name: url
+      value: https://argoproj.github.io/
+  prometheus:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "2"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://prometheus-community.github.io/helm-charts'
+      chart: kube-prometheus-stack
+      targetRevision: "73.2.0"
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: prometheus
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
+    info:
+    - name: url
+      value: https://prometheus-community.github.io/
+  app-of-apps:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "1"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    sources:
+    - repoURL: 'https://argoproj.github.io/argo-helm'
+      chart: argocd-apps
+      targetRevision: "2.0.2"
+      helm:
+        valueFiles:
+        - $values/argo-agent-chart/argocd-apps/values.override.yaml
+    - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: agent-chart
+      ref: values
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: apps
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: url
+      value: https://argoproj.github.io/
+  cert-manager:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "3"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      chart: cert-manager
+      repoURL: https://charts.jetstack.io
+      targetRevision: v1.17.2
+      helm:
+        parameters:
+          - name: "crds.enabled"
+            value: "true"
+          - name: "nodeSelector.workload"
+            value: system
+          - name: "cainjector.nodeSelector.workload"
+            value: system
+          - name: "startupapicheck.nodeSelector.workload"
+            value: system
+          - name: "webhook.nodeSelector.workload"
+            value: system
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: cert-manager
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+
