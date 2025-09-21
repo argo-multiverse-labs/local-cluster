@@ -17,7 +17,7 @@ applications:
         valueFiles:
         - $values/argo-cdviz/argocd/values.override.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: main
+      targetRevision: feat/cdviz
       ref: values
     destination:
       server: https://kubernetes.default.svc
@@ -40,7 +40,7 @@ applications:
     source:
       repoURL: 'https://prometheus-community.github.io/helm-charts'
       chart: kube-prometheus-stack
-      targetRevision: "69.3.1"
+      targetRevision: "77.10.0"
     destination:
       server: https://kubernetes.default.svc
       namespace: prometheus
@@ -128,7 +128,7 @@ applications:
         valueFiles:
         - $values/argo-cdviz/argocd-apps/values.override.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: main
+      targetRevision: feat/cdviz
       ref: values
     destination:
       server: https://kubernetes.default.svc
