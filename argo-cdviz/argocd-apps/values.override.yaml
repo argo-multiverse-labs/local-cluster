@@ -55,6 +55,31 @@ applications:
     - name: url
       value: https://prometheus-community.github.io/
 
+
+  cnpg:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "1"
+    finalizers:
+    - resources-finalizer.argcdo.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://cloudnative-pg.github.io/charts'
+      chart: cloudnative-pg
+      targetRevision: "1.27.0"
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: cdviz
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
+    info:
+    - name: url
+      value: https://cloudnative-pg.github.io/charts
   cdviz-db:
     namespace: argocd
     additionalAnnotations:
