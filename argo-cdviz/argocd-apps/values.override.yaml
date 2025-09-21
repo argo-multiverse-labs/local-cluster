@@ -63,9 +63,9 @@ applications:
     - resources-finalizer.argocd.argoproj.io
     project: default
     source:
-      repoURL: 'https://github.com/cdviz-dev/cdviz.git'
-      targetRevision: main
-      path: charts/cdviz-db
+      repoURL: 'oci://ghcr.io/cdviz-dev/charts'
+      targetRevision: 0.4.0-101-gfd91e6c
+      chart: cdviz-db
       helm:
         values: |
           db_url: "postgresql://cdviz:cdviz@cdviz-db-postgresql:5432/cdviz?sslmode=disable"
@@ -106,9 +106,9 @@ applications:
     - resources-finalizer.argocd.argoproj.io
     project: default
     source:
-      repoURL: 'https://github.com/cdviz-dev/cdviz.git'
-      targetRevision: main
-      path: charts/cdviz-collector
+      repoURL: 'oci://ghcr.io/cdviz-dev/charts'
+      targetRevision: 0.4.0-104-g65d7381
+      chart: cdviz-collector
       helm:
         values: |
           env:
@@ -158,9 +158,9 @@ applications:
     - resources-finalizer.argocd.argoproj.io
     project: default
     source:
-      repoURL: 'https://github.com/cdviz-dev/cdviz.git'
-      targetRevision: main
-      path: charts/cdviz-grafana
+      repoURL: 'oci://ghcr.io/cdviz-dev/charts'
+      targetRevision: 0.4.0-101-gfd91e6c
+      chart: cdviz-grafana
       helm:
         values: |
           grafana:
