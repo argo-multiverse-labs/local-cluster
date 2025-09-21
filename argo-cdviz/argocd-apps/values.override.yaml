@@ -63,7 +63,7 @@ applications:
     - resources-finalizer.argocd.argoproj.io
     project: default
     source:
-      repoURL: 'oci://ghcr.io/cdviz-dev/charts'
+      repoURL: 'oci://ghcr.io/cdviz-dev/charts/cdviz-db'
       targetRevision: 0.4.0-101-gfd91e6c
       chart: cdviz-db
       helm:
@@ -106,7 +106,7 @@ applications:
     - resources-finalizer.argocd.argoproj.io
     project: default
     source:
-      repoURL: 'oci://ghcr.io/cdviz-dev/charts'
+      repoURL: 'oci://ghcr.io/cdviz-dev/charts/cdviz-collector'
       targetRevision: 0.4.0-104-g65d7381
       chart: cdviz-collector
       helm:
@@ -158,7 +158,7 @@ applications:
     - resources-finalizer.argocd.argoproj.io
     project: default
     source:
-      repoURL: 'oci://ghcr.io/cdviz-dev/charts'
+      repoURL: 'oci://ghcr.io/cdviz-dev/charts/cdviz-grafana'
       targetRevision: 0.4.0-101-gfd91e6c
       chart: cdviz-grafana
       helm:
