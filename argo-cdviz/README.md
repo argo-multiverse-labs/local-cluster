@@ -68,7 +68,12 @@ This will remove the KinD cluster and all resources created by the `make build-a
 
 ## CDViz Configuration
 
-CDViz is configured to connect to the local ArgoCD instance. After deployment, you'll need to:
+CDViz is deployed as three separate components:
+- **cdviz-db**: PostgreSQL database for storing CDViz data
+- **cdviz-collector**: Main collector service that connects to ArgoCD and other data sources
+- **cdviz-grafana**: Grafana dashboards and datasource configuration (uses existing Grafana from kube-prometheus-stack)
+
+After deployment, you'll need to configure ArgoCD access:
 
 1. Get an ArgoCD API token:
    ```sh
@@ -79,7 +84,9 @@ CDViz is configured to connect to the local ArgoCD instance. After deployment, y
    argocd account generate-token
    ```
 
-2. Configure CDViz with the token (update the CDViz application in ArgoCD)
+2. Update the cdviz-collector application in ArgoCD with the token:
+   - Navigate to the cdviz-collector application in ArgoCD UI
+   - Edit the helm values to add the token in the datasources section
 
 ## Requirements
 
@@ -96,8 +103,10 @@ The project uses a GitOps approach with ArgoCD managing all applications:
 
 1. **ArgoCD** - GitOps continuous delivery tool (sync-wave: 0)
 2. **Prometheus Stack** - Monitoring and alerting (sync-wave: 1)
-3. **CDViz** - Pipeline visualization and monitoring (sync-wave: 2)
-4. **App-of-Apps** - Meta application managing other apps (sync-wave: 3)
+3. **CDViz Database** - PostgreSQL database for CDViz (sync-wave: 2)
+4. **CDViz Collector** - Main data collection service (sync-wave: 3)
+5. **CDViz Grafana** - Dashboards and datasources (sync-wave: 4)
+6. **App-of-Apps** - Meta application managing other apps (sync-wave: 5)
 
 ## Troubleshooting
 

@@ -55,7 +55,7 @@ applications:
     - name: url
       value: https://prometheus-community.github.io/
 
-  cdviz:
+  cdviz-db:
     namespace: argocd
     additionalAnnotations:
       argocd.argoproj.io/sync-wave: "2"
@@ -65,39 +65,24 @@ applications:
     source:
       repoURL: 'https://github.com/cdviz-dev/cdviz.git'
       targetRevision: main
-      path: deploy/helm
+      path: charts/cdviz-db
       helm:
-        parameters:
-        - name: "cdviz.datasources[0].name"
-          value: "argocd"
-        - name: "cdviz.datasources[0].type"
-          value: "argocd"
-        - name: "cdviz.datasources[0].endpoint"
-          value: "http://argocd-server.argocd.svc.cluster.local:80"
-        - name: "cdviz.datasources[0].insecure"
-          value: "true"
-        - name: "cdviz.datasources[0].token"
-          value: "" # Will need to be configured with ArgoCD token
-        - name: "cdviz.service.type"
-          value: "ClusterIP"
-        - name: "cdviz.service.port"
-          value: "3000"
-        - name: "cdviz.ingress.enabled"
-          value: "false"
-        - name: "cdviz.postgresql.enabled"
-          value: "true"
-        - name: "cdviz.postgresql.auth.postgresPassword"
-          value: "postgres"
-        - name: "cdviz.postgresql.auth.username"
-          value: "cdviz"
-        - name: "cdviz.postgresql.auth.password"
-          value: "cdviz"
-        - name: "cdviz.postgresql.auth.database"
-          value: "cdviz"
-        - name: "cdviz.redis.enabled"
-          value: "true"
-        - name: "cdviz.redis.auth.enabled"
-          value: "false"
+        values: |
+          db_url: "postgresql://cdviz:cdviz@cdviz-db-postgresql:5432/cdviz?sslmode=disable"
+          secret:
+            name: cdviz-db-su
+          storage_size: 100Mi
+          monitor_pod:
+            enable: true
+          postgresql:
+            auth:
+              postgresPassword: postgres
+              username: cdviz
+              password: cdviz
+              database: cdviz
+            primary:
+              persistence:
+                size: 1Gi
     destination:
       server: https://kubernetes.default.svc
       namespace: cdviz
@@ -108,15 +93,107 @@ applications:
       syncOptions:
         - CreateNamespace=true
     info:
+    - name: component
+      value: database
+    - name: github
+      value: https://github.com/cdviz-dev/cdviz
+
+  cdviz-collector:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "3"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/cdviz-dev/cdviz.git'
+      targetRevision: main
+      path: charts/cdviz-collector
+      helm:
+        values: |
+          env:
+            debug_sink: true
+            database_sink: true
+            database_url:
+              fromSecret: cdviz-db-su
+              key: db_url
+            github_webhook_signature_token:
+              fromSecret: cdviz-collector
+              key: github_webhook_signature_token
+          kubewatch:
+            enabled: true
+          secret:
+            github_webhook_signature_token: "changeme123456789"
+          service:
+            type: ClusterIP
+            port: 3000
+          datasources:
+            - name: argocd
+              type: argocd
+              endpoint: http://argocd-server.argocd.svc.cluster.local:80
+              insecure: true
+              token: "" # Will need to be configured with ArgoCD token
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: cdviz
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: component
+      value: collector
     - name: documentation
       value: https://cdviz.dev/
+    - name: github
+      value: https://github.com/cdviz-dev/cdviz
+
+  cdviz-grafana:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "4"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/cdviz-dev/cdviz.git'
+      targetRevision: main
+      path: charts/cdviz-grafana
+      helm:
+        values: |
+          grafana:
+            enabled: false  # We already have grafana from kube-prometheus-stack
+          dashboards:
+            enabled: true
+            label: grafana_dashboard
+            labelValue: "1"
+          datasource:
+            enabled: true
+            url: http://cdviz-db-postgresql:5432
+            database: cdviz
+            user: cdviz
+            password: cdviz
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: cdviz
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: component
+      value: grafana-dashboards
     - name: github
       value: https://github.com/cdviz-dev/cdviz
 
   app-of-apps:
     namespace: argocd
     additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "3"
+      argocd.argoproj.io/sync-wave: "5"
     finalizers:
     - resources-finalizer.argocd.argoproj.io
     project: default

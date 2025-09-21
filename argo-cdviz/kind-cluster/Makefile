@@ -65,7 +65,7 @@ all-pf: kill-port-forwards ## port forward ArgoCD, CDViz, and Prometheus
 	@echo "Prometheus: http://localhost:9090"
 	@echo "Grafana: http://localhost:8081"
 	kubectl port-forward svc/argocd-server -n argocd 8080:80 > /dev/null & \
-	kubectl port-forward svc/cdviz -n cdviz 3000:3000 > /dev/null 2>&1 & \
+	kubectl port-forward svc/cdviz-collector -n cdviz 3000:3000 > /dev/null 2>&1 & \
 	kubectl port-forward svc/prometheus-kube-prometheus-prometheus -n prometheus 9090:9090 > /dev/null 2>&1 & \
 	kubectl port-forward svc/prometheus-grafana -n prometheus 8081:80 > /dev/null 2>&1
 
