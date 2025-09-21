@@ -1,0 +1,140 @@
+## Argo CD configuration
+## Ref: https://github.com/argoproj/argo-cd
+
+# -- Provide a name in place of `argocd`
+nameOverride: argocd
+
+## Globally shared configuration
+global:
+  # -- Default domain used by all components
+  domain: argocd.example.com
+
+  # Default logging options used by all components
+  logging:
+    # -- Set the global logging format. Either: `text` or `json`
+    format: text
+    # -- Set the global logging level. One of: `debug`, `info`, `warn` or `error`
+    level: info
+
+  # -- Add Prometheus scrape annotations to all metrics services
+  addPrometheusAnnotations: true
+
+## Server configuration
+server:
+  # -- Enable/disable the Argo CD server component
+  enabled: true
+
+  # -- Resource limits and requests for the Argo CD server
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+  # -- Server service configuration
+  service:
+    type: ClusterIP
+    servicePortHttp: 80
+    servicePortHttps: 443
+    servicePortGrpc: 443
+
+  # Argo CD server ingress configuration
+  ingress:
+    enabled: false
+
+  # -- Enable application set in Argo CD
+  applicationSet:
+    enabled: true
+
+  # -- Server metrics configuration
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+
+## Dex configuration
+dex:
+  # -- Enable/disable Dex
+  enabled: false
+
+## Redis configuration
+redis:
+  # -- Enable/disable Redis
+  enabled: true
+
+  # -- Resource limits and requests for Redis
+  resources:
+    limits:
+      cpu: 50m
+      memory: 64Mi
+    requests:
+      cpu: 10m
+      memory: 32Mi
+
+## Repo Server configuration
+repoServer:
+  # -- Resource limits and requests for the repo server
+  resources:
+    limits:
+      cpu: 100m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+  # -- Metrics configuration for repo server
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+
+## ApplicationSet controller configuration
+applicationSet:
+  # -- Enable/disable the ApplicationSet controller
+  enabled: true
+
+  # -- Resource limits and requests for the ApplicationSet controller
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+  # -- Metrics configuration for ApplicationSet
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+
+## Controller configuration
+controller:
+  # -- Resource limits and requests for the controller
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+  # -- Metrics configuration for controller
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+
+## Notifications controller configuration
+notifications:
+  # -- Enable/disable notifications controller
+  enabled: false
+
+## CRDs configuration
+crds:
+  # -- Install and upgrade CRDs
+  install: true
+  # -- Keep CRDs on chart uninstall
+  keep: true

@@ -1,0 +1,144 @@
+# -- Deploy Argo CD Applications within this helm release
+# @default -- `[]` (See [values.yaml])
+## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/
+applications:
+  argocd:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "0"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    sources:
+    - repoURL: 'https://argoproj.github.io/argo-helm'
+      chart: argo-cd
+      targetRevision: "8.5.3"
+      helm:
+        valueFiles:
+        - $values/argo-cdviz/argocd/values.override.yaml
+    - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      ref: values
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: argocd
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+    info:
+    - name: url
+      value: https://argoproj.github.io/
+
+  prometheus:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "1"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://prometheus-community.github.io/helm-charts'
+      chart: kube-prometheus-stack
+      targetRevision: "69.3.1"
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: prometheus
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
+    info:
+    - name: url
+      value: https://prometheus-community.github.io/
+
+  cdviz:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "2"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/cdviz-dev/cdviz.git'
+      targetRevision: main
+      path: deploy/helm
+      helm:
+        parameters:
+        - name: "cdviz.datasources[0].name"
+          value: "argocd"
+        - name: "cdviz.datasources[0].type"
+          value: "argocd"
+        - name: "cdviz.datasources[0].endpoint"
+          value: "http://argocd-server.argocd.svc.cluster.local:80"
+        - name: "cdviz.datasources[0].insecure"
+          value: "true"
+        - name: "cdviz.datasources[0].token"
+          value: "" # Will need to be configured with ArgoCD token
+        - name: "cdviz.service.type"
+          value: "ClusterIP"
+        - name: "cdviz.service.port"
+          value: "3000"
+        - name: "cdviz.ingress.enabled"
+          value: "false"
+        - name: "cdviz.postgresql.enabled"
+          value: "true"
+        - name: "cdviz.postgresql.auth.postgresPassword"
+          value: "postgres"
+        - name: "cdviz.postgresql.auth.username"
+          value: "cdviz"
+        - name: "cdviz.postgresql.auth.password"
+          value: "cdviz"
+        - name: "cdviz.postgresql.auth.database"
+          value: "cdviz"
+        - name: "cdviz.redis.enabled"
+          value: "true"
+        - name: "cdviz.redis.auth.enabled"
+          value: "false"
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: cdviz
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: documentation
+      value: https://cdviz.dev/
+    - name: github
+      value: https://github.com/cdviz-dev/cdviz
+
+  app-of-apps:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "3"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    sources:
+    - repoURL: 'https://argoproj.github.io/argo-helm'
+      chart: argocd-apps
+      targetRevision: "2.0.2"
+      helm:
+        valueFiles:
+        - $values/argo-cdviz/argocd-apps/values.override.yaml
+    - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      ref: values
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: apps
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: url
+      value: https://argoproj.github.io/
