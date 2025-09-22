@@ -168,9 +168,9 @@ applications:
     - resources-finalizer.argocd.argoproj.io
     project: default
     source:
-      repoURL: 'oci://ghcr.io/cdviz-dev/charts/cdviz-collector'
-      targetRevision: 0.4.0-104-g65d7381
-      chart: cdviz-collector
+      repoURL: 'https://github.com/lukepatrick/cdviz'
+      targetRevision: feat/charts
+      path: charts/cdviz-collector
       helm:
         values: |
           env:
