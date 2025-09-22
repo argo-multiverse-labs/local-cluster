@@ -19,18 +19,18 @@ grafana:
           path: /var/lib/grafana/dashboards/argo
 
   # Option: Load dashboard from your Git repository file
-  dashboards:
-    argo-dashboards:
-      argo-dashboard:
-        file: argo-cdviz/prometheus/argo-dashboard.json
-        datasource: Prometheus  # Adjust if your Prometheus datasource has a different name
-
-  # Option: Load dashboard from URL (uncomment to use instead)
   # dashboards:
   #   argo-dashboards:
   #     argo-dashboard:
-  #       url: https://raw.githubusercontent.com/argoproj/argo-cd/master/examples/dashboard.json
-  #       datasource: Prometheus
+  #       file: argo-cdviz/prometheus/argo-dashboard.json
+  #       datasource: Prometheus  # Adjust if your Prometheus datasource has a different name
+
+  # Option: Load dashboard from URL (uncomment to use instead)
+  dashboards:
+    argo-dashboards:
+      argo-dashboard:
+        url: https://raw.githubusercontent.com/argoproj/argo-cd/master/examples/dashboard.json
+        datasource: Prometheus
 
   # Configure sidecar to watch for ConfigMaps (for Option 2)
   sidecar:
