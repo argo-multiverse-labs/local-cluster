@@ -28,7 +28,7 @@ applications:
         prune: true
         selfHeal: true
     info:
-    - name: url
+    - name: urlc
       value: https://argoproj.github.io/
 
   prometheus:
@@ -357,3 +357,27 @@ applications:
     info:
     - name: url
       value: https://argoproj.github.io/
+
+  argo-example-guestbook:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6" 
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/argocd-example-apps.git'
+      targetRevision: master
+      path: helm-guestbook  
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: examples
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: example
+      value: guestbook

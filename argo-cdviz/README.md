@@ -124,15 +124,6 @@ The project uses a GitOps approach with ArgoCD managing all applications via syn
 4. **CDViz Collector** - Event collection service with kubewatch integration (sync-wave: 3)
 5. **CDViz Grafana** - Dashboard provisioning to existing Grafana instance (sync-wave: 4)
 
-### Key Features Fixed
-
-- ✅ **PostgreSQL Compatibility**: Fixed TimescaleDB extension compatibility with PostgreSQL 17.2
-- ✅ **Namespace Integration**: CDViz Grafana dashboards properly deployed to prometheus namespace
-- ✅ **Port Forwarding**: Corrected all port mappings in Makefile for proper local access
-- ✅ **CORS Configuration**: Collector properly configured for browser-based POST requests
-- ✅ **Secret Management**: Proper Kubernetes secret references throughout all charts
-- ✅ **Kubewatch Monitoring**: Automatic Kubernetes resource change tracking enabled
-
 ## Troubleshooting
 
 ### Port Forwarding Issues
@@ -141,12 +132,6 @@ If port forwarding stops working or you get connection refused errors:
 make kill-port-forwards
 make all-pf
 ```
-
-**Note**: The Makefile now uses the correct ports:
-- ArgoCD: 8081 (not 8080)
-- CDViz Collector: 8080
-- Grafana: 3000 (not 8081)
-- Prometheus: 9090
 
 ### CDViz Collector Issues
 Check collector logs for webhook processing:
@@ -184,8 +169,3 @@ Feel free to open issues or submit pull requests if you have any improvements or
 - [ArgoCD Documentation](https://argo-cd.readthedocs.io/)
 - [Pipeline Visibility Article](https://dev.to/davidb31/pipeline-visibility-crisis-when-your-tools-dont-talk-3ch)
 
-## License
-
-This project is licensed under the MIT License.
-
-Happy monitoring!
