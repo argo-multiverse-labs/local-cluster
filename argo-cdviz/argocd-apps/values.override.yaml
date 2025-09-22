@@ -183,8 +183,6 @@ applications:
           env:
             CDVIZ_COLLECTOR__SINKS__DEBUG__ENABLED:
               value: "true"
-            CDVIZ_COLLECTOR__SINKS__CDVIZ_DB__ENABLED:
-              value: "true"
             CDVIZ_COLLECTOR__SOURCES__CDEVENTS_WEBHOOK__ENABLED:
               value: "true"
             CDVIZ_COLLECTOR__SOURCES__CDEVENTS_WEBHOOK__EXTRACTOR__ID:
