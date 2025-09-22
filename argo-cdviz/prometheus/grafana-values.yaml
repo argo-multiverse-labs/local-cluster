@@ -1,0 +1,44 @@
+grafana:
+  plugins:
+    - marcusolsson-dynamictext-panel
+    - volkovlabs-form-panel
+    - volkovlabs-table-panel
+
+  # Configure dashboard providers
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: 'argo-dashboards'
+        orgId: 1
+        folder: 'ArgoCD'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/argo
+
+  # Option: Load dashboard from your Git repository file
+  dashboards:
+    argo-dashboards:
+      argo-dashboard:
+        file: argo-cdviz/prometheus/argo-dashboard.json
+        datasource: Prometheus  # Adjust if your Prometheus datasource has a different name
+
+  # Option: Load dashboard from URL (uncomment to use instead)
+  # dashboards:
+  #   argo-dashboards:
+  #     argo-dashboard:
+  #       url: https://raw.githubusercontent.com/argoproj/argo-cd/master/examples/dashboard.json
+  #       datasource: Prometheus
+
+  # Configure sidecar to watch for ConfigMaps (for Option 2)
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      folder: /var/lib/grafana/dashboards
+      provider:
+        disableDelete: false
+        allowUiUpdates: true
