@@ -12,7 +12,7 @@ applications:
     sources:
     - repoURL: 'https://argoproj.github.io/argo-helm'
       chart: argo-cd
-      targetRevision: "8.5.3"
+      targetRevision: "8.5.4"
       helm:
         valueFiles:
         - $values/argo-cdviz/argocd/values.override.yaml
