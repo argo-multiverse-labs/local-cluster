@@ -48,7 +48,8 @@ argo-pf: ## get admin password and port forward ArgoCD
 	kubectx kind-$(KIND_CLUSTER_NAME)
 	kubectl get secret argocd-initial-admin-secret --template={{.data.password}} -n argocd | $(BASE64_DECODE)
 	@echo "";
-	kubectl port-forward svc/argocd-server -n argocd 8080:80
+	@echo "ArgoCD: http://localhost:8081"
+	kubectl port-forward svc/argocd-server -n argocd 8081:80
 
 .PHONY: all-pf
 all-pf: kill-port-forwards ## port forward ArgoCD, CDViz, and Prometheus
@@ -60,10 +61,11 @@ all-pf: kill-port-forwards ## port forward ArgoCD, CDViz, and Prometheus
 	@kubectl get secret prometheus-grafana -ogo-template='{{ index .data "admin-password" | base64decode }}' -n prometheus 2>/dev/null || echo "Grafana not yet deployed"
 	@echo ""
 	@echo "Starting port forwards..."
-	@echo "ArgoCD: http://localhost:8080"
-	@echo "CDViz: http://localhost:3000"
+	@echo "ArgoCD: http://localhost:8081"
+	@echo "CDViz Collector: http://localhost:8080"
+	@echo "  └── Webhook endpoints: /webhook/000-cdevents, /webhook/000-kubewatch"
 	@echo "Prometheus: http://localhost:9090"
-	@echo "Grafana: http://localhost:8081"
+	@echo "Grafana: http://localhost:3000"
 	kubectl port-forward svc/argocd-server -n argocd 8081:80 > /dev/null & \
 	kubectl port-forward svc/cdviz-collector -n cdviz 8080:8080 > /dev/null 2>&1 & \
 	kubectl port-forward svc/prometheus-kube-prometheus-prometheus -n prometheus 9090:9090 > /dev/null 2>&1 & \

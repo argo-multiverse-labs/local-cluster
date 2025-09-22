@@ -29,10 +29,13 @@ This command will:
 
 After running `make build-all`, the services will be available at:
 
-- **ArgoCD UI**: http://localhost:8080 (admin/password shown in terminal)
-- **CDViz**: http://localhost:3000
+- **ArgoCD UI**: http://localhost:8081 (admin/password shown in terminal)
+- **CDViz Collector**: http://localhost:8080
+  - **Webhook Endpoints**:
+    - CDEvents: http://localhost:8080/webhook/000-cdevents
+    - Kubewatch: http://localhost:8080/webhook/000-kubewatch
 - **Prometheus**: http://localhost:9090
-- **Grafana**: http://localhost:8081 (admin/password shown in terminal)
+- **Grafana**: http://localhost:3000 (admin/password shown in terminal)
 
 ### Clean Up
 
@@ -69,24 +72,38 @@ This will remove the KinD cluster and all resources created by the `make build-a
 ## CDViz Configuration
 
 CDViz is deployed as three separate components:
-- **cdviz-db**: PostgreSQL database for storing CDViz data
-- **cdviz-collector**: Main collector service that connects to ArgoCD and other data sources
-- **cdviz-grafana**: Grafana dashboards and datasource configuration (uses existing Grafana from kube-prometheus-stack)
+- **cdviz-db**: PostgreSQL 17.2 with TimescaleDB extension for storing CDEvents data
+- **cdviz-collector**: Main collector service that receives webhooks and processes CDEvents
+- **cdviz-grafana**: Grafana dashboards and datasource configuration (integrates with existing Grafana from kube-prometheus-stack)
 
-After deployment, you'll need to configure ArgoCD access:
+### Database Setup
 
-1. Get an ArgoCD API token:
-   ```sh
-   # Login to ArgoCD CLI
-   argocd login localhost:8080 --username admin --password <password>
+The database is automatically configured using CloudNativePG operator with:
+- PostgreSQL 17.2 with TimescaleDB extensions
+- Automatic schema migrations via cdviz-db-migration job
+- Proper secret management for database credentials
 
-   # Generate a token
-   argocd account generate-token
-   ```
+### Collector Configuration
 
-2. Update the cdviz-collector application in ArgoCD with the token:
-   - Navigate to the cdviz-collector application in ArgoCD UI
-   - Edit the helm values to add the token in the datasources section
+The collector is configured to receive events from multiple sources:
+- **CDEvents webhook**: Receives standard CDEvents via REST API
+- **Kubewatch integration**: Monitors Kubernetes resource changes automatically
+- **Debug sink**: Logs all received events for troubleshooting
+
+### Grafana Integration
+
+Grafana dashboards are automatically provisioned with:
+- **Interactive Demo Forms**: Send test CDEvents directly from Grafana dashboards
+- **Real-time Visualizations**: Track pipeline executions, deployments, and incidents
+- **Direct Database Queries**: Dashboards query PostgreSQL directly for optimal performance
+
+### Testing CDEvents
+
+Use the Grafana dashboards to send test events:
+1. Navigate to **Grafana**: http://localhost:3000
+2. Open the "Demo Service Deployed" dashboard
+3. Fill out the forms and click "Send" to POST events to the collector
+4. Events are automatically stored in the database and visible in other dashboards
 
 ## Requirements
 
@@ -99,28 +116,61 @@ After deployment, you'll need to configure ArgoCD access:
 
 ## Architecture
 
-The project uses a GitOps approach with ArgoCD managing all applications:
+The project uses a GitOps approach with ArgoCD managing all applications via sync waves:
 
 1. **ArgoCD** - GitOps continuous delivery tool (sync-wave: 0)
-2. **Prometheus Stack** - Monitoring and alerting (sync-wave: 1)
-3. **CDViz Database** - PostgreSQL database for CDViz (sync-wave: 2)
-4. **CDViz Collector** - Main data collection service (sync-wave: 3)
-5. **CDViz Grafana** - Dashboards and datasources (sync-wave: 4)
-6. **App-of-Apps** - Meta application managing other apps (sync-wave: 5)
+2. **Prometheus Stack** - Monitoring and alerting with Grafana (sync-wave: 1)
+3. **CDViz Database** - PostgreSQL 17.2 + TimescaleDB with CloudNativePG (sync-wave: 2)
+4. **CDViz Collector** - Event collection service with kubewatch integration (sync-wave: 3)
+5. **CDViz Grafana** - Dashboard provisioning to existing Grafana instance (sync-wave: 4)
+
+### Key Features Fixed
+
+- ✅ **PostgreSQL Compatibility**: Fixed TimescaleDB extension compatibility with PostgreSQL 17.2
+- ✅ **Namespace Integration**: CDViz Grafana dashboards properly deployed to prometheus namespace
+- ✅ **Port Forwarding**: Corrected all port mappings in Makefile for proper local access
+- ✅ **CORS Configuration**: Collector properly configured for browser-based POST requests
+- ✅ **Secret Management**: Proper Kubernetes secret references throughout all charts
+- ✅ **Kubewatch Monitoring**: Automatic Kubernetes resource change tracking enabled
 
 ## Troubleshooting
 
 ### Port Forwarding Issues
-If port forwarding stops working:
+If port forwarding stops working or you get connection refused errors:
 ```sh
 make kill-port-forwards
 make all-pf
 ```
 
-### CDViz Connection Issues
-Ensure CDViz has the correct ArgoCD token configured. Check the CDViz logs:
+**Note**: The Makefile now uses the correct ports:
+- ArgoCD: 8081 (not 8080)
+- CDViz Collector: 8080
+- Grafana: 3000 (not 8081)
+- Prometheus: 9090
+
+### CDViz Collector Issues
+Check collector logs for webhook processing:
 ```sh
-kubectl logs -n cdviz deployment/cdviz
+kubectl logs -n cdviz deployment/cdviz-collector
+```
+
+### Database Connection Issues
+Verify database is running and migrations completed:
+```sh
+kubectl get pods -n cdviz
+kubectl logs -n cdviz deployment/cdviz-db-migration
+```
+
+### Grafana Dashboard POST Errors
+If you get "net::ERR_CONNECTION_REFUSED" when sending events from Grafana:
+1. Ensure port forwarding is active: `make all-pf`
+2. Verify collector is accessible: `curl http://localhost:8080/webhook/000-cdevents`
+3. Check browser network tab for actual error details
+
+### TimescaleDB Extension Issues
+If you see "undefined symbol" errors, ensure using PostgreSQL 17.2:
+```sh
+kubectl get cluster -n cdviz cdviz-db -o yaml | grep imageName
 ```
 
 ## Contributing
