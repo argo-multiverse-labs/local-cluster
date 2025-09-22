@@ -174,27 +174,32 @@ applications:
       helm:
         values: |
           env:
-            debug_sink: true
-            database_sink: true
-            database_url:
-              fromSecret: cdviz-db-su
-              key: db_url
-            github_webhook_signature_token:
-              fromSecret: cdviz-collector
-              key: github_webhook_signature_token
+            CDVIZ_COLLECTOR__SINKS__DEBUG__ENABLED:
+              value: "true"
+            CDVIZ_COLLECTOR__SINKS__DATABASE__ENABLED:
+              value: "true"
+            CDVIZ_COLLECTOR__SINKS__DATABASE__URL:
+              valueFrom:
+                secretKeyRef:
+                  name: "cdviz-db-su"
+                  key: DATABASE_URL
+            CDVIZ_COLLECTOR__SOURCES__GITHUB_WEBHOOK__EXTRACTOR__HEADERS__X-HUB-SIGNATURE-256__TOKEN:
+              valueFrom:
+                secretKeyRef:
+                  name: "cdviz-collector-secret"
+                  key: GITHUB_WEBHOOK_SIGNATURE_TOKEN
+          extraObjects:
+            cdviz-collector-secret:
+              enabled: true
+              apiVersion: v1
+              kind: Secret
+              metadata:
+                name: cdviz-collector-secret
+              type: Opaque
+              data:
+                GITHUB_WEBHOOK_SIGNATURE_TOKEN: "Y2hhbmdlbWUxMjM0NTY3ODk="  # base64: changeme123456789
           kubewatch:
             enabled: true
-          secret:
-            github_webhook_signature_token: "changeme123456789"
-          service:
-            type: ClusterIP
-            port: 3000
-          datasources:
-            - name: argocd
-              type: argocd
-              endpoint: http://argocd-server.argocd.svc.cluster.local:80
-              insecure: true
-              token: "" # Will need to be configured with ArgoCD token
     destination:
       server: https://kubernetes.default.svc
       namespace: cdviz
