@@ -1,21 +1,21 @@
-# apiVersion: kustomize.config.k8s.io/v1beta1
-# kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
 
-# namespace: prometheus
+namespace: prometheus
 
-# # Generate ConfigMaps from dashboard JSON files
-# configMapGenerator:
-# - name: argo-dashboard
-#   files:
-#   - argo-dashboard.json
+# Generate ConfigMaps from dashboard JSON files
+configMapGenerator:
+- name: argo-dashboard
+  files:
+  - argo-dashboard.json
+  options:
+    labels:
+      grafana_dashboard: "1"  # This label tells Grafana sidecar to load it
+
+# Optional: Also load dashboard from URL
+# - name: argo-dashboard-upstream
+#   literals:
+#   - argo-dashboard.json=https://raw.githubusercontent.com/argoproj/argo-cd/master/examples/dashboard.json
 #   options:
 #     labels:
-#       grafana_dashboard: "1"  # This label tells Grafana sidecar to load it
-
-# # Optional: Also load dashboard from URL
-# # - name: argo-dashboard-upstream
-# #   literals:
-# #   - argo-dashboard.json=https://raw.githubusercontent.com/argoproj/argo-cd/master/examples/dashboard.json
-# #   options:
-# #     labels:
-# #       grafana_dashboard: "1"
+#       grafana_dashboard: "1"

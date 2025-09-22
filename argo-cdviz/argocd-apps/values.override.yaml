@@ -251,27 +251,27 @@ applications:
     - name: github
       value: https://github.com/cdviz-dev/cdviz
 
-  # argo-dashboards:
-  #   namespace: argocd
-  #   additionalAnnotations:
-  #     argocd.argoproj.io/sync-wave: "2"  # Deploy after Prometheus/Grafana
-  #   finalizers:
-  #   - resources-finalizer.argocd.argoproj.io
-  #   project: default
-  #   source:
-  #     repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-  #     targetRevision: feat/cdviz
-  #     path: argo-cdviz/prometheus  # Points to the kustomization.yaml
-  #   destination:
-  #     server: https://kubernetes.default.svc
-  #     namespace: prometheus
-  #   syncPolicy:
-  #     automated:
-  #       prune: true
-  #       selfHeal: true
-  #   info:
-  #   - name: component
-  #     value: grafana-dashboards
+  argo-dashboards:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "2"  # Deploy after Prometheus/Grafana
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: feat/cdviz
+      path: argo-cdviz/prometheus  # Points to the kustomization.yaml
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: prometheus
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+    info:
+    - name: component
+      value: grafana-dashboards
 
   cdviz-grafana:
     namespace: argocd
