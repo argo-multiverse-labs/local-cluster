@@ -117,7 +117,7 @@ applications:
                 name: cdviz-db-postgresql
               spec:
                 instances: 1
-                imageName: ghcr.io/cdviz-dev/cdviz-db-pg:16.6
+                imageName: ghcr.io/cdviz-dev/cdviz-db-pg:17.2
                 imagePullPolicy: IfNotPresent
                 postgresql:
                   shared_preload_libraries:
