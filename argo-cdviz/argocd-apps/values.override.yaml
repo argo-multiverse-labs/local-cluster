@@ -207,6 +207,28 @@ applications:
                 GITHUB_WEBHOOK_SIGNATURE_TOKEN: "Y2hhbmdlbWUxMjM0NTY3ODk="  # base64: changeme123456789
           kubewatch:
             enabled: true
+            rbac:
+              create: true
+            resourcesToWatch:
+              deployment: true
+              daemonset: true
+              statefulset: true
+              replicationcontroller: false
+              replicaset: false
+              services: true
+              pod: true
+              job: false
+              node: false
+              clusterrole: false
+              clusterrolebinding: false
+              serviceaccount: false
+              persistentvolume: false
+              namespace: false
+              secret: false
+              configmap: false
+              ingress: false
+              coreevent: false
+              event: true
     destination:
       server: https://kubernetes.default.svc
       namespace: cdviz
