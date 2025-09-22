@@ -29,15 +29,16 @@ notifications:
           body: |
             {
               "context": {
-                "version": "0.5.0-draft",
+                "version": "0.4.1",
                 "id": "{{ .app.metadata.uid }}-{{ .app.status.operationState.finishedAt | date "20060102150405" }}",
-                "source": "argocd/{{ .app.metadata.namespace }}",
-                "type": "dev.cdevents.service.{{ if .app.status.reconciledAt }}{{ if eq .app.status.reconciledAt .app.metadata.creationTimestamp }}deployed{{ else }}upgraded{{ end }}{{ else }}deployed{{ end }}.0.3.0-draft",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "type": "dev.cdevents.service.{{ if .app.status.reconciledAt }}{{ if eq .app.status.reconciledAt .app.metadata.creationTimestamp }}deployed{{ else }}upgraded{{ end }}{{ else }}deployed{{ end }}.0.2.0",
                 "timestamp": "{{ .app.status.operationState.finishedAt }}"
               },
               "subject": {
                 "id": "{{ .app.metadata.namespace }}/{{ .app.metadata.name }}",
                 "type": "service",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
                 "content": {
                   "environment": {
                     "id": "{{ .app.metadata.namespace }}",
@@ -64,15 +65,16 @@ notifications:
           body: |
             {
               "context": {
-                "version": "0.5.0-draft",
+                "version": "0.4.1",
                 "id": "{{ .app.metadata.uid }}-incident-{{ now | unixEpoch }}",
-                "source": "argocd/{{ .app.metadata.namespace }}",
-                "type": "dev.cdevents.incident.detected.0.3.0-draft",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "type": "dev.cdevents.incident.detected.0.2.0",
                 "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
               },
               "subject": {
                 "id": "incident-{{ .app.metadata.namespace }}-{{ .app.metadata.name }}-{{ now | unixEpoch }}",
                 "type": "incident",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
                 "content": {
                   "description": "Application {{ .app.metadata.name }} health degraded: {{ .app.status.health.message | default "Health status degraded" }}",
                   "environment": {
@@ -99,15 +101,16 @@ notifications:
           body: |
             {
               "context": {
-                "version": "0.5.0-draft",
+                "version": "0.4.1",
                 "id": "{{ .app.metadata.uid }}-removed-{{ now | unixEpoch }}",
-                "source": "argocd/{{ .app.metadata.namespace }}",
-                "type": "dev.cdevents.service.removed.0.3.0-draft",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "type": "dev.cdevents.service.removed.0.2.0",
                 "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
               },
               "subject": {
                 "id": "{{ .app.metadata.namespace }}/{{ .app.metadata.name }}",
                 "type": "service",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
                 "content": {
                   "environment": {
                     "id": "{{ .app.metadata.namespace }}"
@@ -128,15 +131,16 @@ notifications:
           body: |
             {
               "context": {
-                "version": "0.5.0-draft",
+                "version": "0.4.1",
                 "id": "{{ .app.metadata.uid }}-sync-failed-{{ now | unixEpoch }}",
-                "source": "argocd/{{ .app.metadata.namespace }}",
-                "type": "dev.cdevents.incident.detected.0.3.0-draft",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "type": "dev.cdevents.incident.detected.0.2.0",
                 "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
               },
               "subject": {
                 "id": "incident-sync-{{ .app.metadata.namespace }}-{{ .app.metadata.name }}-{{ now | unixEpoch }}",
                 "type": "incident",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
                 "content": {
                   "description": "Sync failed for {{ .app.metadata.name }}: {{ .app.status.operationState.message | default "Sync operation failed" }}",
                   "environment": {
@@ -162,15 +166,16 @@ notifications:
           body: |
             {
               "context": {
-                "version": "0.5.0-draft",
+                "version": "0.4.1",
                 "id": "{{ .app.metadata.uid }}-incident-resolved-{{ now | unixEpoch }}",
-                "source": "argocd/{{ .app.metadata.namespace }}",
-                "type": "dev.cdevents.incident.resolved.0.3.0-draft",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "type": "dev.cdevents.incident.resolved.0.2.0",
                 "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
               },
               "subject": {
                 "id": "incident-{{ .app.metadata.namespace }}-{{ .app.metadata.name }}-resolved",
                 "type": "incident",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
                 "content": {
                   "description": "Application {{ .app.metadata.name }} health recovered",
                   "environment": {
@@ -195,15 +200,16 @@ notifications:
           body: |
             {
               "context": {
-                "version": "0.5.0-draft",
+                "version": "0.4.1",
                 "id": "{{ .app.metadata.uid }}-rolledback-{{ now | unixEpoch }}",
-                "source": "argocd/{{ .app.metadata.namespace }}",
-                "type": "dev.cdevents.service.rolledback.0.3.0-draft",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "type": "dev.cdevents.service.rolledback.0.2.0",
                 "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
               },
               "subject": {
                 "id": "{{ .app.metadata.namespace }}/{{ .app.metadata.name }}",
                 "type": "service",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
                 "content": {
                   "environment": {
                     "id": "{{ .app.metadata.namespace }}"
@@ -226,15 +232,16 @@ notifications:
           body: |
             {
               "context": {
-                "version": "0.5.0-draft",
+                "version": "0.4.1",
                 "id": "{{ .app.metadata.uid }}-published-{{ now | unixEpoch }}",
-                "source": "argocd/{{ .app.metadata.namespace }}",
-                "type": "dev.cdevents.service.published.0.3.0-draft",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "type": "dev.cdevents.service.published.0.2.0",
                 "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
               },
               "subject": {
                 "id": "{{ .app.metadata.namespace }}/{{ .app.metadata.name }}",
                 "type": "service",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
                 "content": {
                   "environment": {
                     "id": "{{ .app.metadata.namespace }}"
