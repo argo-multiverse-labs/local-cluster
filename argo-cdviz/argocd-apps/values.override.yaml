@@ -108,7 +108,7 @@ applications:
                 name: cdviz-db-su
               type: Opaque
               data:
-                DATABASE_URL: "cG9zdGdyZXNxbDovL2Nkdml6OmNkdml6QGNkdml6LWRiLXBvc3RncmVzcWw6NTQzMi9jZHZpej9zc2xtb2RlPWRpc2FibGU="  # base64 encoded: postgresql://cdviz:cdviz@cdviz-db-postgresql:5432/cdviz?sslmode=disable
+                DATABASE_URL: "cG9zdGdyZXNxbDovL2Nkdml6OmNkdml6QGNkdml6LWRiLXBvc3RncmVzcWwtcnc6NTQzMi9jZHZpej9zc2xtb2RlPWRpc2FibGU="  # base64 encoded: postgresql://cdviz:cdviz@cdviz-db-postgresql-rw:5432/cdviz?sslmode=disable
             cloudnative-pg-basic:
               enabled: true
               apiVersion: postgresql.cnpg.io/v1
