@@ -243,7 +243,7 @@ applications:
                 enabled: true
                 type: postgres
                 access: proxy
-                url: cdviz-db-postgresql-rw:5432
+                url: cdviz-db-postgresql-rw.cdviz.svc.cluster.local:5432  # Fully qualified since we're in different namespace
                 user: cdviz
                 secureJsonData:
                   password: cdviz
@@ -258,7 +258,7 @@ applications:
                   timescaledb: true
     destination:
       server: https://kubernetes.default.svc
-      namespace: cdviz
+      namespace: prometheus  # Deploy to prometheus namespace where Grafana lives
     syncPolicy:
       automated:
         prune: true
