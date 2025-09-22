@@ -66,7 +66,7 @@ applications:
     source:
       repoURL: 'https://cloudnative-pg.github.io/charts'
       chart: cloudnative-pg
-      targetRevision: "v0.26.0"
+      targetRevision: "v0.23.0"
     destination:
       server: https://kubernetes.default.svc
       namespace: cdviz
