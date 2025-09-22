@@ -225,23 +225,37 @@ applications:
     - resources-finalizer.argocd.argoproj.io
     project: default
     source:
-      repoURL: 'oci://ghcr.io/cdviz-dev/charts/cdviz-grafana'
-      targetRevision: 0.4.0-101-gfd91e6c
-      chart: cdviz-grafana
+      repoURL: 'https://github.com/lukepatrick/cdviz'
+      targetRevision: feat/charts
+      path: charts/cdviz-grafana
       helm:
         values: |
-          grafana:
-            enabled: false  # We already have grafana from kube-prometheus-stack
           dashboards:
             enabled: true
-            label: grafana_dashboard
-            labelValue: "1"
-          datasource:
+            annotations:
+              grafana_dashboard: "1"
+          datasources:
             enabled: true
-            url: http://cdviz-db-postgresql:5432
-            database: cdviz
-            user: cdviz
-            password: cdviz
+            annotations:
+              grafana_datasource: "1"
+            definitions:
+              cdviz-db:
+                enabled: true
+                type: postgres
+                access: proxy
+                url: cdviz-db-postgresql-rw:5432
+                user: cdviz
+                secureJsonData:
+                  password: cdviz
+                jsonData:
+                  database: cdviz
+                  sslmode: disable
+                  maxOpenConns: 10
+                  maxIdleConns: 10
+                  maxIdleConnsAuto: true
+                  connMaxLifetime: 14400
+                  postgresVersion: 1600
+                  timescaledb: true
     destination:
       server: https://kubernetes.default.svc
       namespace: cdviz
