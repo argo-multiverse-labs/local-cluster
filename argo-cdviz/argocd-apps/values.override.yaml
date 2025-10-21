@@ -18,7 +18,7 @@ applications:
         - $values/argo-cdviz/argocd/values.override.yaml
         - $values/argo-cdviz/argocd/notifications-cdevents.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: feat/cdviz
+      targetRevision: explore/cdcluster
       ref: values
     destination:
       server: https://kubernetes.default.svc
@@ -46,7 +46,7 @@ applications:
         valueFiles:
         - $values/argo-cdviz/prometheus/grafana-values.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: feat/cdviz
+      targetRevision: explore/cdcluster
       ref: values
     destination:
       server: https://kubernetes.default.svc
@@ -87,6 +87,99 @@ applications:
     info:
     - name: url
       value: https://cloudnative-pg.github.io/charts
+
+  kyverno:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "1"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://kyverno.github.io/kyverno'
+      chart: kyverno
+      targetRevision: "3.5.2"
+      helm:
+        values: |
+          grafana:
+            enabled: true
+          cleanupController:
+            enabled: true
+          webhooksCleanup:
+            enabled: true
+            image:
+              registry: registry.k8s.io
+              repository: kubectl
+              tag: latest
+          # Background controller needs permissions to manage secrets for generate rules
+          backgroundController:
+            rbac:
+              clusterRole:
+                extraResources:
+                  - apiGroups:
+                      - ''
+                    resources:
+                      - secrets
+                    verbs:
+                      - get
+                      - list
+                      - watch
+                      - create
+                      - update
+                      - patch
+                      - delete
+          # Admission controller also needs permissions to validate generate rules
+          admissionController:
+            rbac:
+              clusterRole:
+                extraResources:
+                  - apiGroups:
+                      - ''
+                    resources:
+                      - secrets
+                    verbs:
+                      - get
+                      - list
+                      - create
+                      - update
+                      - patch
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: kyverno
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
+    info:
+    - name: url
+      value: https://kyverno.io/
+  kyverno-policy:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "2"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: explore/cdcluster
+      path: argo-cdviz/kyverno
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: kyverno
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+    info:
+    - name: component
+      value: vcluster-registration
+    - name: description
+      value: Auto-register vClusters with ArgoCD
+
   cdviz-db:
     namespace: argocd
     additionalAnnotations:
@@ -261,7 +354,7 @@ applications:
     project: default
     source:
       repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: feat/cdviz
+      targetRevision: explore/cdcluster
       path: argo-cdviz/prometheus  # Points to the kustomization.yaml
     destination:
       server: https://kubernetes.default.svc
@@ -343,7 +436,7 @@ applications:
         valueFiles:
         - $values/argo-cdviz/argocd-apps/values.override.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: feat/cdviz
+      targetRevision: explore/cdcluster
       ref: values
     destination:
       server: https://kubernetes.default.svc
@@ -381,3 +474,43 @@ applications:
     info:
     - name: example
       value: guestbook
+
+# ApplicationSets for multi-cluster deployments
+applicationsets:
+  spoke-argocd:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "5"
+    generators:
+      - clusters:
+          selector:
+            matchLabels:
+              vcluster: "true"
+              cdviz-demo: "true"
+    template:
+      metadata:
+        name: '{{name}}-argocd'
+      spec:
+        project: default
+        sources:
+        - repoURL: 'https://argoproj.github.io/argo-helm'
+          chart: argo-cd
+          targetRevision: "8.5.4"
+          helm:
+            valueFiles:
+            - $values/argo-cdviz/argocd-spoke/spoke-values.yaml
+            parameters:
+            - name: environment
+              value: '{{name}}'
+        - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+          targetRevision: explore/cdcluster
+          ref: values
+        destination:
+          server: '{{server}}'
+          namespace: argocd
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true
+          syncOptions:
+            - CreateNamespace=true

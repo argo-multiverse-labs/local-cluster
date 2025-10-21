@@ -1,0 +1,15 @@
+# vCluster configuration for Staging environment
+# Minimal configuration with TLS SAN and service replication
+
+# Control plane configuration with TLS SAN
+controlPlane:
+  proxy:
+    extraSANs:
+      - staging.vcluster-staging
+
+# Enable access to host cluster CDViz collector via service replication
+networking:
+  replicateServices:
+    fromHost:
+      - from: cdviz/cdviz-collector
+        to: cdviz/cdviz-collector

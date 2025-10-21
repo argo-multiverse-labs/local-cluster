@@ -259,9 +259,9 @@ notifications:
   # CDEvents Triggers - conditions that send notifications
   triggers:
     # Trigger when application is deployed (synced and healthy)
+            # oncePer: app.status.sync.revision
     trigger.on-deployed-cdevents: |
       - description: Application is synced and healthy. Triggered once per commit.
-        oncePer: app.status.sync.revision
         send:
         - cdevents-service-deployed
         when: app.status.operationState != nil and app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'

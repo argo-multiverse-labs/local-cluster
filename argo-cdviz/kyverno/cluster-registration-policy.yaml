@@ -1,0 +1,95 @@
+# Kyverno ClusterPolicy to automatically register vClusters with ArgoCD
+# Based on app-sets-project pattern with enhanced environment labels
+#
+# How it works:
+# 1. Watches for vCluster secrets (name pattern: vc-*)
+# 2. Extracts vCluster credentials and connection info
+# 3. Automatically generates ArgoCD cluster secret in argocd namespace
+# 4. Adds labels for environment-based filtering in ApplicationSets
+
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: vcluster-argocd-registration
+spec:
+  generateExisting: true
+  rules:
+  - name: register-vcluster-with-argocd
+    skipBackgroundRequests: false
+    match:
+      any:
+      - resources:
+          names:
+          - "vc-*"  # Matches vCluster connection secrets
+          kinds:
+          - Secret
+    exclude:
+      any:
+      - resources:
+          namespaces:
+          - kube-system
+          - default
+          - kube-public
+          - kyverno
+    context:
+    # Extract namespace where vCluster is deployed
+    - name: namespace
+      variable:
+        value: "{{ request.object.metadata.namespace }}"
+
+    # Extract secret name
+    - name: name
+      variable:
+        value: "{{ request.object.metadata.name }}"
+
+    # Extract TLS certificates from vCluster secret
+    - name: ca
+      variable:
+        value: "{{ request.object.data.\"certificate-authority\" }}"
+    - name: cert
+      variable:
+        value: "{{ request.object.data.\"client-certificate\" }}"
+    - name: key
+      variable:
+        value: "{{ request.object.data.\"client-key\" }}"
+
+    # Extract vCluster name from namespace
+    # vcluster-dev → dev, vcluster-staging → staging, vcluster-prod → prod
+    - name: vclusterName
+      variable:
+        value: "{{ replace_all(namespace, 'vcluster-', '') }}"
+        jmesPath: 'to_string(@)'
+
+    # Generate ArgoCD cluster secret
+    generate:
+      kind: Secret
+      apiVersion: v1
+      name: "{{ vclusterName }}"
+      namespace: argocd
+      synchronize: true
+      data:
+        kind: Secret
+        metadata:
+          labels:
+            # Required label for ArgoCD cluster discovery
+            argocd.argoproj.io/secret-type: cluster
+            # Custom labels for demo
+            vcluster: "true"
+            environment: "{{ vclusterName }}"  # dev, staging, or prod
+            cdviz-demo: "true"
+            role: "spoke"  # Distinguishes spoke clusters from hub
+        stringData:
+          # Cluster name as it appears in ArgoCD
+          name: "{{ vclusterName }}"
+          # Server URL for vCluster access from host cluster
+          server: "https://{{ vclusterName }}.{{ namespace }}:443"
+          # TLS configuration for secure connection
+          config: |
+            {
+              "tlsClientConfig": {
+                "insecure": false,
+                "caData": "{{ ca }}",
+                "certData": "{{ cert }}",
+                "keyData": "{{ key }}"
+              }
+            }

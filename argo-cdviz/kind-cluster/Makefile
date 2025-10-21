@@ -31,6 +31,17 @@ kind-cluster: vendor ## build a kind cluster with 3 worker nodes, k8s 1.33
 rm-kind: ## delete the kind cluster
 	kind delete cluster --name $(KIND_CLUSTER_NAME)
 
+.PHONY: vcluster-init
+vcluster-init: vendor ## create 3 vclusters (dev, staging, prod)
+	kubectx kind-$(KIND_CLUSTER_NAME)
+	@echo "Creating vCluster: dev"
+	vcluster create dev --namespace vcluster-dev --upgrade --connect=false --distro k8s -f ../vcluster/dev-values.yaml
+	@echo "Creating vCluster: staging"
+	vcluster create staging --namespace vcluster-staging --upgrade --connect=false --distro k8s -f ../vcluster/staging-values.yaml
+	@echo "Creating vCluster: prod"
+	vcluster create prod --namespace vcluster-prod --upgrade --connect=false --distro k8s -f ../vcluster/prod-values.yaml
+	@echo "All vClusters created successfully!"
+
 .PHONY: argo-init
 argo-init: vendor ## init ArgoCD to KinD cluster
 	kubectx kind-$(KIND_CLUSTER_NAME)
@@ -84,7 +95,7 @@ kill-port-forwards: ## kill all kubectl port-forward processes
 	fi
 
 .PHONY: build-all
-build-all: vendor kind-cluster ## create kind cluster, bootstrap argocd, bootstrap argocd-apps, port forward all services
+build-all: vendor kind-cluster vcluster-init ## create kind cluster, vclusters, bootstrap argocd, bootstrap argocd-apps, port forward all services
 	$(MAKE) argo-init
 	sleep 30
 	$(MAKE) argo-bootstrap
@@ -96,6 +107,7 @@ HAS_KUBECTL      := $(shell command -v kubectl;)
 HAS_KUBECTX      := $(shell command -v kubectx;)
 HAS_HELM         := $(shell command -v helm;)
 HAS_KIND         := $(shell command -v kind;)
+HAS_VCLUSTER     := $(shell command -v vcluster;)
 
 .PHONY: vendor
 vendor: ## Preflight checks
@@ -110,4 +122,7 @@ ifndef HAS_KUBECTX
 endif
 ifndef HAS_KIND
 	$(error You must install kind)
+endif
+ifndef HAS_VCLUSTER
+	$(error You must install vcluster CLI)
 endif
