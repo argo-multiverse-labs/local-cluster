@@ -36,12 +36,12 @@ notifications:
                 "timestamp": "{{ .app.status.operationState.finishedAt }}"
               },
               "subject": {
-                "id": "{{ .app.metadata.namespace }}/{{ .app.metadata.name }}",
+                "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}",
                 "type": "service",
-                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "source": "/argocd/{{ .app.spec.namespace.namespace }}",
                 "content": {
                   "environment": {
-                    "id": "{{ .app.metadata.namespace }}",
+                    "id": "{{ .app.spec.destination.namespace }}",
                     "source": "{{ .app.spec.destination.name | default .app.spec.destination.server }}"
                   },
                   "artifactId": "pkg:git/{{ .app.spec.source.repoURL | replace "https://" "" | replace "http://" "" | replace ".git" "" }}@{{ .app.status.sync.revision }}"
@@ -51,9 +51,9 @@ notifications:
                 "argocdApp": "{{ .app.metadata.name }}",
                 "syncStatus": "{{ .app.status.sync.status }}",
                 "healthStatus": "{{ .app.status.health.status }}",
-                "targetRevision": "{{ .app.spec.source.targetRevision }}",
+                "targetRevision": "{{ .app.spec.destination.targetRevision }}",
                 "cluster": "{{ .app.spec.destination.name | default .app.spec.destination.server }}",
-                "namespace": "{{ .app.metadata.namespace }}"
+                "namespace": "{{ .app.spec.destination.namespace }}"
               }
             }
 
@@ -72,16 +72,16 @@ notifications:
                 "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
               },
               "subject": {
-                "id": "incident-{{ .app.metadata.namespace }}-{{ .app.metadata.name }}-{{ now | unixEpoch }}",
+                "id": "incident-{{ .app.spec.destination.namespace }}-{{ .app.metadata.name }}-{{ now | unixEpoch }}",
                 "type": "incident",
-                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "source": "/argocd/{{ .app.spec.destination.namespace }}",
                 "content": {
                   "description": "Application {{ .app.metadata.name }} health degraded: {{ .app.status.health.message | default "Health status degraded" }}",
                   "environment": {
-                    "id": "{{ .app.metadata.namespace }}"
+                    "id": "{{ .app.spec.destination.namespace }}"
                   },
                   "service": {
-                    "id": "{{ .app.metadata.namespace }}/{{ .app.metadata.name }}"
+                    "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}"
                   },
                   "artifactId": "pkg:git/{{ .app.spec.source.repoURL | replace "https://" "" | replace "http://" "" | replace ".git" "" }}@{{ .app.status.sync.revision }}"
                 }
@@ -108,12 +108,12 @@ notifications:
                 "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
               },
               "subject": {
-                "id": "{{ .app.metadata.namespace }}/{{ .app.metadata.name }}",
+                "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}",
                 "type": "service",
-                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "source": "/argocd/{{ .app.spec.destination.namespace }}",
                 "content": {
                   "environment": {
-                    "id": "{{ .app.metadata.namespace }}"
+                    "id": "{{ .app.spec.destination.namespace }}"
                   }
                 }
               },
@@ -138,16 +138,16 @@ notifications:
                 "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
               },
               "subject": {
-                "id": "incident-sync-{{ .app.metadata.namespace }}-{{ .app.metadata.name }}-{{ now | unixEpoch }}",
+                "id": "incident-sync-{{ .app.spec.destination.namespace }}-{{ .app.metadata.name }}-{{ now | unixEpoch }}",
                 "type": "incident",
-                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "source": "/argocd/{{ .app.spec.destination.namespace }}",
                 "content": {
                   "description": "Sync failed for {{ .app.metadata.name }}: {{ .app.status.operationState.message | default "Sync operation failed" }}",
                   "environment": {
-                    "id": "{{ .app.metadata.namespace }}"
+                    "id": "{{ .app.spec.destination.namespace }}"
                   },
                   "service": {
-                    "id": "{{ .app.metadata.namespace }}/{{ .app.metadata.name }}"
+                    "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}"
                   },
                   "artifactId": "pkg:git/{{ .app.spec.source.repoURL | replace "https://" "" | replace "http://" "" | replace ".git" "" }}@{{ .app.spec.source.targetRevision }}"
                 }
@@ -173,16 +173,16 @@ notifications:
                 "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
               },
               "subject": {
-                "id": "incident-{{ .app.metadata.namespace }}-{{ .app.metadata.name }}-resolved",
+                "id": "incident-{{ .app.spec.destination.namespace }}-{{ .app.metadata.name }}-resolved",
                 "type": "incident",
-                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "source": "/argocd/{{ .app.spec.destination.namespace }}",
                 "content": {
                   "description": "Application {{ .app.metadata.name }} health recovered",
                   "environment": {
-                    "id": "{{ .app.metadata.namespace }}"
+                    "id": "{{ .app.spec.destination.namespace }}"
                   },
                   "service": {
-                    "id": "{{ .app.metadata.namespace }}/{{ .app.metadata.name }}"
+                    "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}"
                   }
                 }
               },
@@ -207,12 +207,12 @@ notifications:
                 "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
               },
               "subject": {
-                "id": "{{ .app.metadata.namespace }}/{{ .app.metadata.name }}",
+                "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}",
                 "type": "service",
-                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "source": "/argocd/{{ .app.spec.destination.namespace }}",
                 "content": {
                   "environment": {
-                    "id": "{{ .app.metadata.namespace }}"
+                    "id": "{{ .app.spec.destination.namespace }}"
                   },
                   "artifactId": "pkg:git/{{ .app.spec.source.repoURL | replace "https://" "" | replace "http://" "" | replace ".git" "" }}@{{ .app.status.sync.revision }}"
                 }
@@ -239,12 +239,12 @@ notifications:
                 "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
               },
               "subject": {
-                "id": "{{ .app.metadata.namespace }}/{{ .app.metadata.name }}",
+                "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}",
                 "type": "service",
-                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "source": "/argocd/{{ .app.spec.destination.namespace }}",
                 "content": {
                   "environment": {
-                    "id": "{{ .app.metadata.namespace }}"
+                    "id": "{{ .app.spec.destination.namespace }}"
                   },
                   "artifactId": "pkg:git/{{ .app.spec.source.repoURL | replace "https://" "" | replace "http://" "" | replace ".git" "" }}@{{ .app.status.sync.revision }}",
                   "url": "{{ .service.url | default "" }}"
@@ -259,9 +259,9 @@ notifications:
   # CDEvents Triggers - conditions that send notifications
   triggers:
     # Trigger when application is deployed (synced and healthy)
+    #         oncePer: app.status.sync.revision
     trigger.on-deployed-cdevents: |
       - description: Application is synced and healthy. Triggered once per commit.
-        oncePer: app.status.sync.revision
         send:
         - cdevents-service-deployed
         when: app.status.operationState != nil and app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'

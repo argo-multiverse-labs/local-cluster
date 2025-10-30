@@ -18,7 +18,7 @@ applications:
         - $values/argo-cdviz/argocd/values.override.yaml
         - $values/argo-cdviz/argocd/notifications-cdevents.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: feat/cdviz
+      targetRevision: exp/multiapp
       ref: values
     destination:
       server: https://kubernetes.default.svc
@@ -46,7 +46,7 @@ applications:
         valueFiles:
         - $values/argo-cdviz/prometheus/grafana-values.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: feat/cdviz
+      targetRevision: exp/multiapp
       ref: values
     destination:
       server: https://kubernetes.default.svc
@@ -261,7 +261,7 @@ applications:
     project: default
     source:
       repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: feat/cdviz
+      targetRevision: exp/multiapp
       path: argo-cdviz/prometheus  # Points to the kustomization.yaml
     destination:
       server: https://kubernetes.default.svc
@@ -343,7 +343,7 @@ applications:
         valueFiles:
         - $values/argo-cdviz/argocd-apps/values.override.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: feat/cdviz
+      targetRevision: exp/multiapp
       ref: values
     destination:
       server: https://kubernetes.default.svc
@@ -358,20 +358,20 @@ applications:
     - name: url
       value: https://argoproj.github.io/
 
-  argo-example-guestbook:
+  guestbook-dev:
     namespace: argocd
     additionalAnnotations:
-      argocd.argoproj.io/sync-wave: "6" 
+      argocd.argoproj.io/sync-wave: "6"
     finalizers:
     - resources-finalizer.argocd.argoproj.io
     project: default
     source:
       repoURL: 'https://github.com/argo-multiverse-labs/argocd-example-apps.git'
       targetRevision: master
-      path: helm-guestbook  
+      path: helm-guestbook
     destination:
       server: https://kubernetes.default.svc
-      namespace: examples
+      namespace: dev
     syncPolicy:
       automated:
         prune: true
@@ -379,5 +379,53 @@ applications:
       syncOptions:
         - CreateNamespace=true
     info:
-    - name: example
-      value: guestbook
+    - name: environment
+      value: development
+
+  guestbook-staging:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/argocd-example-apps.git'
+      targetRevision: master
+      path: helm-guestbook
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: staging
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: environment
+      value: staging
+
+  guestbook-prod:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/argocd-example-apps.git'
+      targetRevision: master
+      path: helm-guestbook
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: prod
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: environment
+      value: production
