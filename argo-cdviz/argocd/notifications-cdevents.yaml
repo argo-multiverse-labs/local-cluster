@@ -38,7 +38,7 @@ notifications:
               "subject": {
                 "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}",
                 "type": "service",
-                "source": "/argocd/{{ .app.spec.namespace.namespace }}",
+                "source": "/argocd/{{ .app.spec.destination.namespace }}",
                 "content": {
                   "environment": {
                     "id": "{{ .app.spec.destination.namespace }}",

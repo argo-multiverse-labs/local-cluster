@@ -429,3 +429,75 @@ applications:
     info:
     - name: environment
       value: production
+
+  hello-app-dev:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/argocd-example-apps.git'
+      targetRevision: master
+      path: guestbook
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: dev
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: environment
+      value: development
+
+  hello-app-staging:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/argocd-example-apps.git'
+      targetRevision: master
+      path: guestbook
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: staging
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: environment
+      value: staging
+
+  hello-app-prod:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/argocd-example-apps.git'
+      targetRevision: master
+      path: guestbook
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: prod
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: environment
+      value: production
