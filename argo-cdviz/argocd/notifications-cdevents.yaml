@@ -1,0 +1,354 @@
+## ArgoCD Notifications Configuration for CDEvents
+## This file configures ArgoCD notifications to emit CDEvents-compliant messages
+## to the CDViz collector endpoint
+
+notifications:
+  enabled: true
+
+  # CDEvents webhook service configuration - points to CDViz collector
+  notifiers:
+    service.webhook.cdevents: |
+      url: http://cdviz-collector.cdviz.svc.cluster.local:8080/webhook/000-cdevents
+      headers:
+      - name: Content-Type
+        value: application/json
+      - name: Ce-Type
+        value: dev.cdevents
+      - name: Ce-Specversion
+        value: "0.5.0-draft"
+      - name: Ce-Source
+        value: argocd/argo-cdviz
+
+  # CDEvents-compliant notification templates
+  templates:
+    # Service Deployed/Upgraded Template
+    template.cdevents-service-deployed: |
+      webhook:
+        cdevents:
+          method: POST
+          body: |
+            {
+              "context": {
+                "version": "0.4.1",
+                "id": "{{ .app.metadata.uid }}-{{ .app.status.operationState.finishedAt | date "20060102150405" }}",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "type": "dev.cdevents.service.{{ if .app.status.reconciledAt }}{{ if eq .app.status.reconciledAt .app.metadata.creationTimestamp }}deployed{{ else }}upgraded{{ end }}{{ else }}deployed{{ end }}.0.2.0",
+                "timestamp": "{{ .app.status.operationState.finishedAt }}"
+              },
+              "subject": {
+                "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}",
+                "type": "service",
+                "source": "/argocd/{{ .app.spec.destination.namespace }}",
+                "content": {
+                  "environment": {
+                    "id": "{{ .app.spec.destination.namespace }}",
+                    "source": "{{ .app.spec.destination.name | default .app.spec.destination.server }}"
+                  },
+                  "artifactId": "pkg:git/{{ .app.spec.source.repoURL | replace "https://" "" | replace "http://" "" | replace ".git" "" }}@{{ .app.status.sync.revision }}"
+                }
+              },
+              "customData": {
+                "argocdApp": "{{ .app.metadata.name }}",
+                "syncStatus": "{{ .app.status.sync.status }}",
+                "healthStatus": "{{ .app.status.health.status }}",
+                "targetRevision": "{{ .app.spec.destination.targetRevision }}",
+                "cluster": "{{ .app.spec.destination.name | default .app.spec.destination.server }}",
+                "namespace": "{{ .app.spec.destination.namespace }}"
+              }
+            }
+
+    # Incident Detected Template (Health Degraded)
+    template.cdevents-incident-detected: |
+      webhook:
+        cdevents:
+          method: POST
+          body: |
+            {
+              "context": {
+                "version": "0.4.1",
+                "id": "{{ .app.metadata.uid }}-incident-{{ now | unixEpoch }}",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "type": "dev.cdevents.incident.detected.0.2.0",
+                "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
+              },
+              "subject": {
+                "id": "incident-{{ .app.spec.destination.namespace }}-{{ .app.metadata.name }}-{{ now | unixEpoch }}",
+                "type": "incident",
+                "source": "/argocd/{{ .app.spec.destination.namespace }}",
+                "content": {
+                  "description": "Application {{ .app.metadata.name }} health degraded: {{ .app.status.health.message | default "Health status degraded" }}",
+                  "environment": {
+                    "id": "{{ .app.spec.destination.namespace }}"
+                  },
+                  "service": {
+                    "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}"
+                  },
+                  "artifactId": "pkg:git/{{ .app.spec.source.repoURL | replace "https://" "" | replace "http://" "" | replace ".git" "" }}@{{ .app.status.sync.revision }}"
+                }
+              },
+              "customData": {
+                "healthStatus": "{{ .app.status.health.status }}",
+                "syncStatus": "{{ .app.status.sync.status }}",
+                "conditions": {{ .app.status.conditions | toJson | default "[]" }}
+              }
+            }
+
+    # Service Removed Template
+    template.cdevents-service-removed: |
+      webhook:
+        cdevents:
+          method: POST
+          body: |
+            {
+              "context": {
+                "version": "0.4.1",
+                "id": "{{ .app.metadata.uid }}-removed-{{ now | unixEpoch }}",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "type": "dev.cdevents.service.removed.0.2.0",
+                "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
+              },
+              "subject": {
+                "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}",
+                "type": "service",
+                "source": "/argocd/{{ .app.spec.destination.namespace }}",
+                "content": {
+                  "environment": {
+                    "id": "{{ .app.spec.destination.namespace }}"
+                  }
+                }
+              },
+              "customData": {
+                "deletionTimestamp": "{{ .app.metadata.deletionTimestamp }}",
+                "finalizers": {{ .app.metadata.finalizers | toJson | default "[]" }}
+              }
+            }
+
+    # Sync Failed (Incident) Template
+    template.cdevents-sync-failed: |
+      webhook:
+        cdevents:
+          method: POST
+          body: |
+            {
+              "context": {
+                "version": "0.4.1",
+                "id": "{{ .app.metadata.uid }}-sync-failed-{{ now | unixEpoch }}",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "type": "dev.cdevents.incident.detected.0.2.0",
+                "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
+              },
+              "subject": {
+                "id": "incident-sync-{{ .app.spec.destination.namespace }}-{{ .app.metadata.name }}-{{ now | unixEpoch }}",
+                "type": "incident",
+                "source": "/argocd/{{ .app.spec.destination.namespace }}",
+                "content": {
+                  "description": "Sync failed for {{ .app.metadata.name }}: {{ .app.status.operationState.message | default "Sync operation failed" }}",
+                  "environment": {
+                    "id": "{{ .app.spec.destination.namespace }}"
+                  },
+                  "service": {
+                    "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}"
+                  },
+                  "artifactId": "pkg:git/{{ .app.spec.source.repoURL | replace "https://" "" | replace "http://" "" | replace ".git" "" }}@{{ .app.spec.source.targetRevision }}"
+                }
+              },
+              "customData": {
+                "phase": "{{ .app.status.operationState.phase }}",
+                "syncResult": {{ .app.status.operationState.syncResult | toJson | default "{}" }}
+              }
+            }
+
+    # Incident Resolved Template (Health Recovered)
+    template.cdevents-incident-resolved: |
+      webhook:
+        cdevents:
+          method: POST
+          body: |
+            {
+              "context": {
+                "version": "0.4.1",
+                "id": "{{ .app.metadata.uid }}-incident-resolved-{{ now | unixEpoch }}",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "type": "dev.cdevents.incident.resolved.0.2.0",
+                "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
+              },
+              "subject": {
+                "id": "incident-{{ .app.spec.destination.namespace }}-{{ .app.metadata.name }}-resolved",
+                "type": "incident",
+                "source": "/argocd/{{ .app.spec.destination.namespace }}",
+                "content": {
+                  "description": "Application {{ .app.metadata.name }} health recovered",
+                  "environment": {
+                    "id": "{{ .app.spec.destination.namespace }}"
+                  },
+                  "service": {
+                    "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}"
+                  }
+                }
+              },
+              "customData": {
+                "healthStatus": "{{ .app.status.health.status }}",
+                "syncStatus": "{{ .app.status.sync.status }}"
+              }
+            }
+
+    # Service Rolled Back Template
+    template.cdevents-service-rolledback: |
+      webhook:
+        cdevents:
+          method: POST
+          body: |
+            {
+              "context": {
+                "version": "0.4.1",
+                "id": "{{ .app.metadata.uid }}-rolledback-{{ now | unixEpoch }}",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "type": "dev.cdevents.service.rolledback.0.2.0",
+                "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
+              },
+              "subject": {
+                "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}",
+                "type": "service",
+                "source": "/argocd/{{ .app.spec.destination.namespace }}",
+                "content": {
+                  "environment": {
+                    "id": "{{ .app.spec.destination.namespace }}"
+                  },
+                  "artifactId": "pkg:git/{{ .app.spec.source.repoURL | replace "https://" "" | replace "http://" "" | replace ".git" "" }}@{{ .app.status.sync.revision }}"
+                }
+              },
+              "customData": {
+                "previousRevision": "{{ .rollback.previousRevision | default "unknown" }}",
+                "currentRevision": "{{ .app.status.sync.revision }}",
+                "reason": "{{ .rollback.reason | default "Manual rollback" }}"
+              }
+            }
+
+    # Service Published Template (Service becomes accessible)
+    template.cdevents-service-published: |
+      webhook:
+        cdevents:
+          method: POST
+          body: |
+            {
+              "context": {
+                "version": "0.4.1",
+                "id": "{{ .app.metadata.uid }}-published-{{ now | unixEpoch }}",
+                "source": "/argocd/{{ .app.metadata.namespace }}",
+                "type": "dev.cdevents.service.published.0.2.0",
+                "timestamp": "{{ now | date "2006-01-02T15:04:05.000000Z07:00" }}"
+              },
+              "subject": {
+                "id": "{{ .app.spec.destination.namespace }}/{{ .app.metadata.name }}",
+                "type": "service",
+                "source": "/argocd/{{ .app.spec.destination.namespace }}",
+                "content": {
+                  "environment": {
+                    "id": "{{ .app.spec.destination.namespace }}"
+                  },
+                  "artifactId": "pkg:git/{{ .app.spec.source.repoURL | replace "https://" "" | replace "http://" "" | replace ".git" "" }}@{{ .app.status.sync.revision }}",
+                  "url": "{{ .service.url | default "" }}"
+                }
+              },
+              "customData": {
+                "endpoints": {{ .service.endpoints | toJson | default "[]" }},
+                "ingress": "{{ .service.ingress | default "" }}"
+              }
+            }
+
+  # CDEvents Triggers - conditions that send notifications
+  triggers:
+    # Trigger when application is deployed (synced and healthy)
+    #         oncePer: app.status.sync.revision
+    trigger.on-deployed-cdevents: |
+      - description: Application is synced and healthy. Triggered once per commit.
+        send:
+        - cdevents-service-deployed
+        when: app.status.operationState != nil and app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+
+    # Trigger when application health is degraded
+    trigger.on-health-degraded-cdevents: |
+      - description: Application health has degraded
+        send:
+        - cdevents-incident-detected
+        when: app.status.health.status == 'Degraded'
+
+    # Trigger when application is deleted
+    trigger.on-deleted-cdevents: |
+      - description: Application is being deleted
+        send:
+        - cdevents-service-removed
+        when: app.metadata.deletionTimestamp != nil
+
+    # Trigger when sync fails
+    trigger.on-sync-failed-cdevents: |
+      - description: Application sync has failed
+        send:
+        - cdevents-sync-failed
+        when: app.status.operationState != nil and app.status.operationState.phase in ['Error', 'Failed']
+
+    # Trigger when health recovers from degraded to healthy
+    trigger.on-health-recovered-cdevents: |
+      - description: Application health has recovered
+        send:
+        - cdevents-incident-resolved
+        when: app.status.health.status == 'Healthy' and app.status.conditions != nil
+
+    # Trigger when sync is running (optional - for deployment started events)
+    trigger.on-sync-running-cdevents: |
+      - description: Application sync is running
+        send: []  # Can be extended to send deployment.started events
+        when: app.status.operationState != nil and app.status.operationState.phase in ['Running']
+
+    # Trigger when sync status is unknown (incident)
+    trigger.on-sync-status-unknown-cdevents: |
+      - description: Application sync status is unknown
+        send:
+        - cdevents-incident-detected
+        when: app.status.sync.status == 'Unknown'
+
+  # Global subscriptions for CDEvents (applies to all applications)
+  # Individual applications can override with annotations
+  subscriptions:
+    # Subscribe all applications to CDEvents notifications
+    - recipients:
+      - cdevents
+      triggers:
+      - on-deployed-cdevents
+      - on-health-degraded-cdevents
+      - on-deleted-cdevents
+      - on-sync-failed-cdevents
+      - on-health-recovered-cdevents
+      - on-sync-running-cdevents
+      - on-sync-status-unknown-cdevents
+
+  # Secret configuration (if authentication is needed)
+  # secret:
+  #   create: true
+  #   name: "argocd-notifications-secret"
+  #   items:
+      # Add webhook token if CDViz requires authentication
+      # webhook-cdevents-token: "changeme123456789"
+
+## Usage Instructions:
+## 1. Apply this configuration to your ArgoCD installation:
+##    - Include this file in your ArgoCD Helm values
+##    - Or merge with existing values.override.yaml
+##
+## 2. For individual application subscriptions, add annotations:
+##    metadata:
+##      annotations:
+##        notifications.argoproj.io/subscribe.on-deployed-cdevents.cdevents: ""
+##        notifications.argoproj.io/subscribe.on-health-degraded-cdevents.cdevents: ""
+##
+## 3. Verify CDViz collector is running:
+##    kubectl get svc -n cdviz cdviz-collector
+##
+## 4. Monitor CDEvents in CDViz Grafana dashboards:
+##    - Port-forward: kubectl port-forward -n prometheus svc/prometheus-grafana 8081:80
+##    - Access: http://localhost:8081
+##
+## 5. Test notifications:
+##    - Deploy or update an application
+##    - Check CDViz collector logs: kubectl logs -n cdviz -l app.kubernetes.io/name=cdviz-collector
+##    - Query CDViz database for events
