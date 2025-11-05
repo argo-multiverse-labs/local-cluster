@@ -18,7 +18,7 @@ applications:
         - $values/argo-cdviz/argocd/values.override.yaml
         - $values/argo-cdviz/argocd/notifications-cdevents.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: exp/multiapp
+      targetRevision: main
       ref: values
     destination:
       server: https://kubernetes.default.svc
@@ -46,7 +46,7 @@ applications:
         valueFiles:
         - $values/argo-cdviz/prometheus/grafana-values.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: exp/multiapp
+      targetRevision: main
       ref: values
     destination:
       server: https://kubernetes.default.svc
@@ -261,7 +261,7 @@ applications:
     project: default
     source:
       repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: exp/multiapp
+      targetRevision: main
       path: argo-cdviz/prometheus  # Points to the kustomization.yaml
     destination:
       server: https://kubernetes.default.svc
@@ -343,7 +343,7 @@ applications:
         valueFiles:
         - $values/argo-cdviz/argocd-apps/values.override.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: exp/multiapp
+      targetRevision: main
       ref: values
     destination:
       server: https://kubernetes.default.svc
