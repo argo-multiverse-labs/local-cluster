@@ -1,18 +1,6 @@
-apiVersion: kustomize.toolkit.fluxcd.io/v1
+apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-metadata:
-  name: guestbook-flux
-  namespace: flux-system
-spec:
-  interval: 5m
-  path: ./guestbook
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: argocd-example-apps
-  targetNamespace: flux-apps
-  healthChecks:
-  - apiVersion: apps/v1
-    kind: Deployment
-    name: guestbook-ui
-    namespace: flux-apps
+resources:
+- namespace.yaml
+- gitrepository.yaml
+- guestbook-kustomization.yaml
