@@ -11,7 +11,7 @@ else
 endif
 
 # KIND cluster name for resource management
-KIND_CLUSTER_NAME = argo-cdviz
+KIND_CLUSTER_NAME = argo-cdviz-flux
 
 ################################################################################
 # Setup and Help                                                               #

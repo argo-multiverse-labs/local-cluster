@@ -17,7 +17,7 @@ notifications:
       - name: Ce-Specversion
         value: "0.5.0-draft"
       - name: Ce-Source
-        value: argocd/argo-cdviz
+        value: argocd/argo-cdviz-flux
 
   # CDEvents-compliant notification templates
   templates:

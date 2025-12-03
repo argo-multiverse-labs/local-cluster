@@ -15,10 +15,10 @@ applications:
       targetRevision: "8.5.4"
       helm:
         valueFiles:
-        - $values/argo-cdviz/argocd/values.override.yaml
-        - $values/argo-cdviz/argocd/notifications-cdevents.yaml
+        - $values/argo-cdviz-flux/argocd/values.override.yaml
+        - $values/argo-cdviz-flux/argocd/notifications-cdevents.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: main
+      targetRevision: feat/flux
       ref: values
     destination:
       server: https://kubernetes.default.svc
@@ -44,9 +44,9 @@ applications:
       targetRevision: "77.10.0"
       helm:
         valueFiles:
-        - $values/argo-cdviz/prometheus/grafana-values.yaml
+        - $values/argo-cdviz-flux/prometheus/grafana-values.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: main
+      targetRevision: feat/flux
       ref: values
     destination:
       server: https://kubernetes.default.svc
@@ -216,7 +216,7 @@ applications:
     project: default
     source:
       repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: main
+      targetRevision: feat/flux
       path: argo-cdviz-flux/flux-apps
     destination:
       server: https://kubernetes.default.svc
@@ -323,8 +323,8 @@ applications:
     project: default
     source:
       repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: main
-      path: argo-cdviz/prometheus  # Points to the kustomization.yaml
+      targetRevision: feat/flux
+      path: argo-cdviz-flux/prometheus  # Points to the kustomization.yaml
     destination:
       server: https://kubernetes.default.svc
       namespace: prometheus
@@ -403,9 +403,9 @@ applications:
       targetRevision: "2.0.2"
       helm:
         valueFiles:
-        - $values/argo-cdviz/argocd-apps/values.override.yaml
+        - $values/argo-cdviz-flux/argocd-apps/values.override.yaml
     - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
-      targetRevision: main
+      targetRevision: feat/flux
       ref: values
     destination:
       server: https://kubernetes.default.svc
