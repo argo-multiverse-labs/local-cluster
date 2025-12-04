@@ -1,0 +1,18 @@
+apiVersion: notification.toolkit.fluxcd.io/v1
+kind: Receiver
+metadata:
+  name: cdevents-receiver
+  namespace: flux-system
+spec:
+  type: cdevents
+  # Filter for service deployed events - triggers when a deployment happens
+  events:
+    - "dev.cdevents.service.deployed"
+    - "dev.cdevents.service.upgraded"
+    - "dev.cdevents.change.merged"
+  secretRef:
+    name: cdevents-receiver-token
+  resources:
+    # When CDEvent is received, trigger reconciliation of guestbook
+    - kind: Kustomization
+      name: guestbook-flux

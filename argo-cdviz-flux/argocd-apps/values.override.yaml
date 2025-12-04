@@ -1,0 +1,565 @@
+# -- Deploy Argo CD Applications within this helm release
+# @default -- `[]` (See [values.yaml])
+## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/
+applications:
+  argocd:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "0"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    sources:
+    - repoURL: 'https://argoproj.github.io/argo-helm'
+      chart: argo-cd
+      targetRevision: "8.5.4"
+      helm:
+        valueFiles:
+        - $values/argo-cdviz-flux/argocd/values.override.yaml
+        - $values/argo-cdviz-flux/argocd/notifications-cdevents.yaml
+    - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      ref: values
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: argocd
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+    info:
+    - name: urlc
+      value: https://argoproj.github.io/
+
+  prometheus:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "1"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    sources:
+    - repoURL: 'https://prometheus-community.github.io/helm-charts'
+      chart: kube-prometheus-stack
+      targetRevision: "77.10.0"
+      helm:
+        valueFiles:
+        - $values/argo-cdviz-flux/prometheus/grafana-values.yaml
+    - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      ref: values
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: prometheus
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
+    info:
+    - name: url
+      value: https://prometheus-community.github.io/
+
+
+  flux-system:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "1"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://fluxcd-community.github.io/helm-charts'
+      chart: flux2
+      targetRevision: "2.17.1"
+      helm:
+        values: |
+          installCRDs: true
+          sourceController:
+            create: true
+          kustomizeController:
+            create: true
+          notificationController:
+            create: true
+          helmController:
+            create: false
+          imageReflectionController:
+            create: false
+          imageAutomationController:
+            create: false
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: flux-system
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: false
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
+    info:
+    - name: url
+      value: https://fluxcd.io/
+
+  cnpg:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "1"
+    finalizers:
+    - resources-finalizer.argcdo.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://cloudnative-pg.github.io/charts'
+      chart: cloudnative-pg
+      targetRevision: "v0.23.0"
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: cdviz
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
+    info:
+    - name: url
+      value: https://cloudnative-pg.github.io/charts
+  cdviz-db:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "2"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/lukepatrick/cdviz'
+      targetRevision: feat/charts
+      path: charts/cdviz-db
+      helm:
+        values: |
+          env:
+            DATABASE_URL:
+              valueFrom:
+                secretKeyRef:
+                  name: "cdviz-db-su"
+                  key: DATABASE_URL
+          extraObjects:
+            cdviz-db-su-secret:
+              enabled: true
+              apiVersion: v1
+              kind: Secret
+              metadata:
+                name: cdviz-db-su
+              type: Opaque
+              data:
+                DATABASE_URL: "cG9zdGdyZXNxbDovL2Nkdml6OmNkdml6QGNkdml6LWRiLXBvc3RncmVzcWwtcnc6NTQzMi9jZHZpej9zc2xtb2RlPWRpc2FibGU="  # base64 encoded: postgresql://cdviz:cdviz@cdviz-db-postgresql-rw:5432/cdviz?sslmode=disable
+            cloudnative-pg-basic:
+              enabled: true
+              apiVersion: postgresql.cnpg.io/v1
+              kind: Cluster
+              metadata:
+                name: cdviz-db-postgresql
+              spec:
+                instances: 1
+                imageName: ghcr.io/cdviz-dev/cdviz-db-pg:17.2
+                imagePullPolicy: IfNotPresent
+                postgresql:
+                  shared_preload_libraries:
+                    - timescaledb
+                bootstrap:
+                  initdb:
+                    database: cdviz
+                    owner: cdviz
+                    secret:
+                      name: cdviz-db-owner-secret
+                    postInitTemplateSQL:
+                      - CREATE EXTENSION IF NOT EXISTS timescaledb;
+                      - CREATE EXTENSION IF NOT EXISTS timescaledb_toolkit;
+                storage:
+                  size: 1Gi
+                monitoring:
+                  enablePodMonitor: true
+            cdviz-db-owner-secret:
+              enabled: true
+              apiVersion: v1
+              kind: Secret
+              metadata:
+                name: cdviz-db-owner-secret
+              type: kubernetes.io/basic-auth
+              data:
+                username: "Y2R2aXo="  # base64: cdviz
+                password: "Y2R2aXo="  # base64: cdviz
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: cdviz
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: component
+      value: database
+    - name: github
+      value: https://github.com/cdviz-dev/cdviz
+
+  flux-bootstrap:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "2"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      path: argo-cdviz-flux/flux-apps
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: flux-system
+    syncPolicy:
+      automated:
+        prune: false
+        selfHeal: false
+    info:
+    - name: component
+      value: flux-gitrepository-bootstrap
+
+  cdviz-collector:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "3"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/lukepatrick/cdviz'
+      targetRevision: feat/charts
+      path: charts/cdviz-collector
+      helm:
+        values: |
+          env:
+            CDVIZ_COLLECTOR__SINKS__DEBUG__ENABLED:
+              value: "true"
+            CDVIZ_COLLECTOR__SOURCES__CDEVENTS_WEBHOOK__ENABLED:
+              value: "true"
+            CDVIZ_COLLECTOR__SOURCES__CDEVENTS_WEBHOOK__EXTRACTOR__ID:
+              value: "000-cdevents"
+            CDVIZ_COLLECTOR__SOURCES__CDEVENTS_LOCAL_JSON__ENABLED:
+              value: "false"
+            CDVIZ_COLLECTOR__SINKS__DATABASE__ENABLED:
+              value: "true"
+            CDVIZ_COLLECTOR__SINKS__DATABASE__URL:
+              valueFrom:
+                secretKeyRef:
+                  name: "cdviz-db-su"
+                  key: DATABASE_URL
+            CDVIZ_COLLECTOR__SOURCES__GITHUB_WEBHOOK__EXTRACTOR__HEADERS__X-HUB-SIGNATURE-256__TOKEN:
+              valueFrom:
+                secretKeyRef:
+                  name: "cdviz-collector-secret"
+                  key: GITHUB_WEBHOOK_SIGNATURE_TOKEN
+          extraObjects:
+            cdviz-collector-secret:
+              enabled: true
+              apiVersion: v1
+              kind: Secret
+              metadata:
+                name: cdviz-collector-secret
+              type: Opaque
+              data:
+                GITHUB_WEBHOOK_SIGNATURE_TOKEN: "Y2hhbmdlbWUxMjM0NTY3ODk="  # base64: changeme123456789
+          kubewatch:
+            enabled: true
+            rbac:
+              create: true
+            resourcesToWatch:
+              deployment: true
+              daemonset: true
+              statefulset: true
+              replicationcontroller: false
+              replicaset: false
+              services: true
+              pod: true
+              job: false
+              node: false
+              clusterrole: false
+              clusterrolebinding: false
+              serviceaccount: false
+              persistentvolume: false
+              namespace: false
+              secret: false
+              configmap: false
+              ingress: false
+              coreevent: false
+              event: true
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: cdviz
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: component
+      value: collector
+    - name: documentation
+      value: https://cdviz.dev/
+    - name: github
+      value: https://github.com/cdviz-dev/cdviz
+
+  argo-dashboards:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "2"  # Deploy after Prometheus/Grafana
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      path: argo-cdviz-flux/prometheus  # Points to the kustomization.yaml
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: prometheus
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+    info:
+    - name: component
+      value: grafana-dashboards
+
+  cdviz-grafana:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "4"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/lukepatrick/cdviz'
+      targetRevision: feat/charts
+      path: charts/cdviz-grafana
+      helm:
+        values: |
+          dashboards:
+            enabled: true
+            annotations:
+              grafana_dashboard: "1"
+          datasources:
+            enabled: true
+            annotations:
+              grafana_datasource: "1"
+            definitions:
+              cdviz-db:
+                enabled: true
+                type: postgres
+                access: proxy
+                url: cdviz-db-postgresql-rw.cdviz.svc.cluster.local:5432  # Fully qualified since we're in different namespace
+                user: cdviz
+                secureJsonData:
+                  password: cdviz
+                jsonData:
+                  database: cdviz
+                  sslmode: disable
+                  maxOpenConns: 10
+                  maxIdleConns: 10
+                  maxIdleConnsAuto: true
+                  connMaxLifetime: 14400
+                  postgresVersion: 1600
+                  timescaledb: true
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: prometheus  # Deploy to prometheus namespace where Grafana lives
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: component
+      value: grafana-dashboards
+    - name: github
+      value: https://github.com/cdviz-dev/cdviz
+
+  app-of-apps:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "5"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    sources:
+    - repoURL: 'https://argoproj.github.io/argo-helm'
+      chart: argocd-apps
+      targetRevision: "2.0.2"
+      helm:
+        valueFiles:
+        - $values/argo-cdviz-flux/argocd-apps/values.override.yaml
+    - repoURL: 'https://github.com/argo-multiverse-labs/local-cluster.git'
+      targetRevision: main
+      ref: values
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: apps
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: url
+      value: https://argoproj.github.io/
+
+  guestbook-dev:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/argocd-example-apps.git'
+      targetRevision: master
+      path: helm-guestbook
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: dev
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: environment
+      value: development
+
+  guestbook-staging:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/argocd-example-apps.git'
+      targetRevision: master
+      path: helm-guestbook
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: staging
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: environment
+      value: staging
+
+  guestbook-prod:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/argocd-example-apps.git'
+      targetRevision: master
+      path: helm-guestbook
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: prod
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: environment
+      value: production
+
+  hello-app-dev:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/argocd-example-apps.git'
+      targetRevision: master
+      path: guestbook
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: dev
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: environment
+      value: development
+
+  hello-app-staging:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/argocd-example-apps.git'
+      targetRevision: master
+      path: guestbook
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: staging
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: environment
+      value: staging
+
+  hello-app-prod:
+    namespace: argocd
+    additionalAnnotations:
+      argocd.argoproj.io/sync-wave: "6"
+    finalizers:
+    - resources-finalizer.argocd.argoproj.io
+    project: default
+    source:
+      repoURL: 'https://github.com/argo-multiverse-labs/argocd-example-apps.git'
+      targetRevision: master
+      path: guestbook
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: prod
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:
+        - CreateNamespace=true
+    info:
+    - name: environment
+      value: production
