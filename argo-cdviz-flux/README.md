@@ -128,7 +128,7 @@ The project uses a GitOps approach with ArgoCD managing all applications via syn
 
 ### FluxCD Integration
 
-FluxCD is deployed by ArgoCD to demonstrate multi-controller GitOps and enable CDEvents from Flux:
+FluxCD is deployed by ArgoCD to demonstrate multi-controller GitOps:
 
 - **flux-system namespace**: FluxCD controllers (source, kustomize, notification)
 - **flux-apps namespace**: Applications managed by FluxCD (guestbook)
@@ -140,6 +140,47 @@ make flux-check
 # View Flux logs
 make flux-logs
 ```
+
+#### CDEvents Support
+
+**FluxCD can receive CDEvents** to trigger reconciliations via the notification-controller's `cdevents` receiver type. This project includes a CDEvents Receiver that triggers FluxCD reconciliation when deployment events are received.
+
+**FluxCD cannot publish CDEvents** - there is no CDEvents provider for outbound notifications. ArgoCD publishes CDEvents via templated webhooks (see `argocd/notifications-cdevents.yaml`).
+
+#### Testing the CDEvents Receiver
+
+After the cluster is running, get the receiver webhook URL:
+
+```bash
+# Get the webhook path
+kubectl get receiver cdevents-receiver -n flux-system -o jsonpath='{.status.webhookPath}'
+
+# Port-forward the notification controller (if not using ingress)
+kubectl port-forward -n flux-system svc/notification-controller 9292:80 &
+
+# Send a test CDEvent to trigger reconciliation
+curl -X POST http://localhost:9292/<webhook-path> \
+  -H "Content-Type: application/json" \
+  -d '{
+    "context": {
+      "version": "0.4.1",
+      "id": "test-event-001",
+      "source": "/demo/test",
+      "type": "dev.cdevents.service.deployed.0.2.0",
+      "timestamp": "2025-01-01T00:00:00Z"
+    },
+    "subject": {
+      "id": "test-service",
+      "type": "service",
+      "content": {}
+    }
+  }'
+
+# Watch FluxCD reconcile the guestbook
+kubectl get kustomization -n flux-system -w
+```
+
+
 
 ## Troubleshooting
 

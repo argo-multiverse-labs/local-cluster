@@ -4,3 +4,5 @@ resources:
 - namespace.yaml
 - gitrepository.yaml
 - guestbook-kustomization.yaml
+- receiver-secret.yaml
+- cdevents-receiver.yaml
