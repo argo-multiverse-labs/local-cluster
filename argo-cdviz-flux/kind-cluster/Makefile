@@ -69,7 +69,8 @@ all-pf: kill-port-forwards ## port forward ArgoCD, CDViz, and Prometheus
 	kubectl port-forward svc/argocd-server -n argocd 8081:80 > /dev/null & \
 	kubectl port-forward svc/cdviz-collector -n cdviz 8080:8080 > /dev/null 2>&1 & \
 	kubectl port-forward svc/prometheus-kube-prometheus-prometheus -n prometheus 9090:9090 > /dev/null 2>&1 & \
-	kubectl port-forward svc/prometheus-grafana -n prometheus 3000:80 > /dev/null 2>&1
+	kubectl port-forward svc/prometheus-grafana -n prometheus 3000:80 > /dev/null 2>&1 & \
+	kubectl port-forward -n flux-system svc/notification-controller 9292:80 > /dev/null 2>&1
 
 .PHONY: flux-check
 flux-check: ## Check Flux installation and resources

@@ -159,7 +159,7 @@ kubectl get receiver cdevents-receiver -n flux-system -o jsonpath='{.status.webh
 kubectl port-forward -n flux-system svc/notification-controller 9292:80 &
 
 # Send a test CDEvent to trigger reconciliation
-curl -X POST http://localhost:9292/<webhook-path> \
+curl -X POST http://localhost:9292/hook/b03d83bad7059c66afcf5b0775c3d0dedceba102591a76c136b0c0820bf97087 \
   -H "Content-Type: application/json" \
   -d '{
     "context": {
