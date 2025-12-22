@@ -1639,6 +1639,75 @@
             "show": true
           },
           "yBucketBound": "auto"
+        },
+        {
+          "id": 129,
+          "title": "Kubectl Executions",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 46
+          },
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "sum(rate(argocd_kubectl_exec_total{namespace=~\"$namespace\"}[$interval])) by (command)",
+              "legendFormat": "{{command}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "showPoints": "auto"
+              },
+              "unit": "ops"
+            }
+          }
+        },
+        {
+          "id": 130,
+          "title": "Resource Events Processing",
+          "type": "heatmap",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 46
+          },
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "sum(increase(argocd_resource_events_processing_bucket{namespace=~\"$namespace\"}[$interval])) by (le)",
+              "format": "heatmap",
+              "legendFormat": "{{le}}"
+            }
+          ],
+          "options": {
+            "calculate": false,
+            "cellGap": 1,
+            "color": {
+              "mode": "scheme",
+              "scheme": "Spectral",
+              "steps": 64
+            },
+            "yAxis": {
+              "unit": "s"
+            }
+          }
         }
       ],
       "targets": [
@@ -4877,6 +4946,79 @@
           ],
           "yaxis": {
             "align": false
+          }
+        },
+        {
+          "id": 131,
+          "title": "gRPC Requests Started",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 8,
+            "y": 84
+          },
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "sum(rate(grpc_server_started_total{job=\"argocd-server-metrics\",namespace=~\"$namespace\"}[$interval])) by (grpc_service)",
+              "legendFormat": "{{grpc_service}}"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "showPoints": "auto"
+              },
+              "unit": "ops"
+            }
+          }
+        },
+        {
+          "id": 132,
+          "title": "gRPC Messages",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 8,
+            "y": 92
+          },
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "sum(rate(grpc_server_msg_received_total{job=\"argocd-server-metrics\",namespace=~\"$namespace\"}[$interval]))",
+              "legendFormat": "received"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "sum(rate(grpc_server_msg_sent_total{job=\"argocd-server-metrics\",namespace=~\"$namespace\"}[$interval]))",
+              "legendFormat": "sent"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "linear",
+                "showPoints": "auto"
+              },
+              "unit": "ops"
+            }
           }
         }
       ],
