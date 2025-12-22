@@ -549,7 +549,7 @@
           },
           "expr": "count(argocd_appset_info{namespace=~\"$namespace\"})",
           "format": "time_series",
-          "instant": true,
+          "instant": false,
           "intervalFactor": 1,
           "refId": "A"
         }
